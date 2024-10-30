@@ -2,12 +2,12 @@ package main
 
 func RType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) int {
 	//masks
-	opcode |= 0b1111111
-	rd |= 0b11111
-	func3 |= 0b111
-	rs1 |= 0b11111
-	rs2 |= 0b11111
-	func7 |= 0b1111111
+	opcode &= 0b1111111
+	rd &= 0b11111
+	func3 &= 0b111
+	rs1 &= 0b11111
+	rs2 &= 0b11111
+	func7 &= 0b1111111
 
 	//shifts
 	res := func7
@@ -27,11 +27,11 @@ func RType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) int {
 
 func IType(opcode int, rd int, func3 int, rs1 int, imm int) int {
 	//masks
-	opcode |= 0b1111111
-	rd |= 0b11111
-	func3 |= 0b111
-	rs1 |= 0b11111
-	imm |= 0b111111111111
+	opcode &= 0b1111111
+	rd &= 0b11111
+	func3 &= 0b111
+	rs1 &= 0b11111
+	imm &= 0b111111111111
 
 	//shifts
 	res := imm
@@ -49,12 +49,12 @@ func IType(opcode int, rd int, func3 int, rs1 int, imm int) int {
 
 func SType(opcode int, imm4_0 int, func3 int, rs1 int, rs2 int, imm11_5 int) int {
 	//masks
-	opcode |= 0b1111111
-	imm4_0 |= 0b11111
-	func3 |= 0b111
-	rs1 |= 0b11111
-	rs2 |= 0b11111
-	imm11_5 |= 0b1111111
+	opcode &= 0b1111111
+	imm4_0 &= 0b11111
+	func3 &= 0b111
+	rs1 &= 0b11111
+	rs2 &= 0b11111
+	imm11_5 &= 0b1111111
 
 	//shifts
 	res := imm11_5
@@ -74,14 +74,14 @@ func SType(opcode int, imm4_0 int, func3 int, rs1 int, rs2 int, imm11_5 int) int
 
 func BType(opcode int, imm11 int, imm4_1 int, func3 int, rs1 int, rs2 int, imm10_5 int, imm12 int) int {
 	//masks
-	opcode |= 0b1111111
-	imm11 |= 0b1
-	imm4_1 |= 0b1111
-	func3 |= 0b111
-	rs1 |= 0b11111
-	rs2 |= 0b11111
-	imm10_5 |= 0b111111
-	imm12 |= 0b1
+	opcode &= 0b1111111
+	imm11 &= 0b1
+	imm4_1 &= 0b1111
+	func3 &= 0b111
+	rs1 &= 0b11111
+	rs2 &= 0b11111
+	imm10_5 &= 0b111111
+	imm12 &= 0b1
 
 	//shifts
 	res := imm12
@@ -105,14 +105,14 @@ func BType(opcode int, imm11 int, imm4_1 int, func3 int, rs1 int, rs2 int, imm10
 
 func UType(opcode int, rd int, imm int) int {
 	//masks
-	opcode |= 0b1111111
-	rd |= 0b11111
-	imm |= 0b11111111111111111111
+	opcode &= 0b1111111
+	rd &= 0b11111
+	imm &= 0b11111111111111111111
 
 	//shifts
 	res := imm
 	res <<= 5
-	res |= imm
+	res |= rd
 	res <<= 7
 	res |= opcode
 
@@ -120,12 +120,12 @@ func UType(opcode int, rd int, imm int) int {
 }
 func JType(opcode int, rd int, imm19_12 int, imm11 int, imm10_1 int, imm20 int) int {
 	//masks
-	opcode |= 0b1111111
-	rd |= 0b11111
-	imm19_12 |= 0b11111111
-	imm11 |= 0b1
-	imm10_1 |= 0b1111111111
-	imm20 |= 0b1
+	opcode &= 0b1111111
+	rd &= 0b11111
+	imm19_12 &= 0b11111111
+	imm11 &= 0b1
+	imm10_1 &= 0b1111111111
+	imm20 &= 0b1
 
 	//shifts
 	res := imm20
