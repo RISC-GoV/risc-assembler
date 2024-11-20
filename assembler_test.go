@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestRType(t *testing.T) {
+func TestTranslateRType(t *testing.T) {
 	opcode := 0b0110011
 	rd := 0b00010
 	func3 := 0b000
@@ -13,14 +13,14 @@ func TestRType(t *testing.T) {
 	func7 := 0b0000000
 
 	expected := 0b00000000010000011000000100110011
-	result := RType(opcode, rd, func3, rs1, rs2, func7)
+	result := TranslateRType(opcode, rd, func3, rs1, rs2, func7)
 	if result != expected {
 		t.Errorf("expected %v, got %v", expected, result)
 		return
 	}
 }
 
-func TestIType(t *testing.T) {
+func TestTranslateIType(t *testing.T) {
 	opcode := 0b0010011
 	rd := 0b00001
 	func3 := 0b000
@@ -35,7 +35,7 @@ func TestIType(t *testing.T) {
 	}
 }
 
-func TestSType(t *testing.T) {
+func TestTranslateSType(t *testing.T) {
 	opcode := 0b0100011
 	ihm4_0 := 0b00101
 	func3 := 0b000
@@ -51,7 +51,7 @@ func TestSType(t *testing.T) {
 	}
 }
 
-func TestBType(t *testing.T) {
+func TestTranslateBType(t *testing.T) {
 	opcode := 0b1100011
 	ihm_11 := 0b0
 	ihm4_1 := 0b0110
@@ -69,7 +69,7 @@ func TestBType(t *testing.T) {
 	}
 }
 
-func TestUType(t *testing.T) {
+func TestTranslateUType(t *testing.T) {
 	opcode := 0b0110111
 	rd := 0b10001
 	ihm := 0b00000000000000010011
@@ -82,7 +82,7 @@ func TestUType(t *testing.T) {
 	}
 }
 
-func TestJType(t *testing.T) {
+func TestTranslateJType(t *testing.T) {
 	opcode := 0b1101111
 	rd := 0b10011
 	ihm19_12 := 0b00000000

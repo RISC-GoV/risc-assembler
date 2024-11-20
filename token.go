@@ -119,6 +119,6 @@ func (t *Token) getRegisterFromABI() (int, error) {
 	case "pc":
 		return -1, nil // Since pc is not part of the registers
 	default:
-		return -1, fmt.Errorf("invalid register: %s", register)
+		return -1, fmt.Errorf("invalid register: %d", register)
 	}
 }

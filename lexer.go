@@ -15,10 +15,10 @@ func check(e error) {
 	}
 }
 
-func LexFile(inputFile string, outputFile string) {
+func LexFile(inputFile string, outputFile string) { //todo
 	data, err := os.ReadFile(inputFile)
 	check(err)
-	_ := LexString(string(data))
+	_ = LexString(string(data))
 	//err = os.WriteFile(outputFile, output, 0111)
 	check(err)
 }
@@ -28,14 +28,14 @@ func LexString(str string) []*Token {
 	var buffer bytes.Buffer
 	var parentToken *Token
 	var functionToken *Token
-	for index, char := range str {
+	for _, char := range str {
 		if char == '\n' {
 			var line = buffer.String()
 			if len(line) == 0 {
 				continue
 			}
 			if line[0] == '.' {
-				parentToken = &Token{section, line[1:], []Token{}}
+				parentToken = NewToken(section, line[1:])
 				if parentToken != nil {
 					tokenArr = append(tokenArr, parentToken)
 				}
@@ -64,29 +64,29 @@ func LexString(str string) []*Token {
 	return tokenArr
 }
 
-func LexLine(linePart string, parent *Token) (*Token, error) {
+func LexLine(linePart string, parent *Token) (*Token, error) { //todo
 	var token *Token
 	if len(linePart) == 0 {
 		return token, nil
 	}
 	if strings.TrimSpace(linePart) == "ret" {
-		token = &Token{ret, linePart, []*Token{}}
+		token = NewToken(ret, linePart)
 		parent.children = append(parent.children, token)
 		return token, nil
 	}
 	if linePart[0] == '.' {
-		token = &Token{labelSection, linePart[1:], []*Token{}}
+		token = NewToken(labelSection, linePart[1:])
 		parent.children = append(parent.children, token)
 		return token, nil
 	}
 	if linePart[len(linePart)-1] == ':' {
 		_, err := strconv.Atoi(linePart[1 : len(linePart)-1])
 		if err != nil {
-			token = &Token{globalLabel, linePart[:len(linePart)-1], []*Token{}}
+			token = NewToken(globalLabel, linePart[:len(linePart)-1])
 			parent.children = append(parent.children, token)
 			return token, nil
 		}
-		token = &Token{localLabel, linePart[1 : len(linePart)-1], []*Token{}}
+		token = NewToken(localLabel, linePart[1:len(linePart)-1])
 		parent.children = append(parent.children, token)
 		return token, nil
 	}
@@ -103,7 +103,7 @@ func LexLine(linePart string, parent *Token) (*Token, error) {
 		return token, errors.New("Unknown instruction type: " + strArr[0])
 	}
 
-	parent.children = append(parent.children, &Token{instruction, instructionSTR, []*Token{}})
+	parent.children = append(parent.children, NewToken(instruction, instructionSTR))
 
 	var err error
 
@@ -144,7 +144,7 @@ func ParseRegisters(strArr []string, parent *Token) (int, error) {
 		if !ok {
 			return 0, errors.New("Unknown register type: " + strArr[0])
 		}
-		parent.children = append(parent.children, &Token{register, strings.TrimSpace(str), []*Token{}})
+		parent.children = append(parent.children, NewToken(register, strings.TrimSpace(str)))
 		numInst++
 	}
 	return numInst, nil
@@ -166,119 +166,83 @@ func LexIType(strArr []string, parent *Token) error {
 	if err != nil {
 		return err
 	}
-	var immVal int
-	immVal, err = strconv.Atoi(strArr[len(strArr)-1])
+
+	_, err = strconv.Atoi(strArr[len(strArr)-1])
 	if err != nil {
 		return errors.New("Last arg is not of type int " + strArr[len(strArr)-1])
 	}
 	numInst++
+
 	if numInst != 3 {
 		return errors.New("Wrong number of arguments. Expected 3, got " + strconv.Itoa(numInst))
 	}
-	
+
+	parent.children = append(parent.children, NewToken(literal, strArr[len(strArr)-1]))
+
 	return nil
 }
 
-// TODO: BITWISE
 func LexSType(strArr []string, parent *Token) error {
-	var byteArr []byte
-	var numInst = 0
-
-	ParseRegisters(parent)
+	numInst, err := ParseRegisters(strArr[:len(strArr)-1], parent)
+	if err != nil {
+		return err
+	}
 	var vals = strings.Split(strings.TrimSpace(strArr[len(strArr)-1]), "(")
 	if len(vals) != 2 {
 		return errors.New("Last arg is not of format 'offset(register)' " + strArr[len(strArr)-1])
 	}
 
-	offset, err := strconv.Atoi(vals[0])
+	_, err = strconv.Atoi(vals[0])
 	if err != nil {
 		return errors.New("Offset is not a number " + vals[0])
 	}
 
-	// Perform bitwise mask to extract the lower 12 bits
-	extractedOffset := offset & 0xFFF
-
-	if offset == extractedOffset && offset <= allowedMax && (!isSigned || offset >= -allowedMax) {
-		byteArr = append(byteArr, byte(offset&0xFF), byte((offset>>8)&0xFF))
-	}
-
-	var register, ok = Register[strings.TrimSpace(vals[1][:len(vals[1])-1])]
+	var _, ok = Register[strings.TrimSpace(vals[1][:len(vals[1])-1])]
 	if !ok {
-		return nil, errors.New("Unknown register type: " + vals[1])
+		return errors.New("Unknown register type: " + vals[1])
 	}
-	byteArr = append(byteArr, byte(offset), register)
+
+	parent.children = append(
+		parent.children,
+		&Token{complexValue, strings.TrimSpace(strArr[len(strArr)-1]), []*Token{
+			NewToken(literal, vals[0]),
+			NewToken(register, strings.TrimSpace(vals[1][:len(vals[1])-1])),
+		}})
 	numInst++
+
 	if numInst != 3 {
-		return nil, errors.New("Wrong number of arguments. Expected 2, got " + strconv.Itoa(numInst))
+		return errors.New("Wrong number of arguments. Expected 2, got " + strconv.Itoa(numInst))
 	}
-	return byteArr, nil
+	return nil
 }
 
-// TODO: IMPLEMENT FOR REAL
 func LexBType(strArr []string, parent *Token) error {
-	var byteArr []byte
-	var numInst = 0
-	for _, str := range strArr[1:] {
-		if len(str) == 0 {
-			continue
-		}
-		reg, ok := Register[strings.TrimSpace(str)]
-		if !ok {
-			return nil, errors.New("Unknown register type: " + strArr[0])
-		}
-		byteArr = append(byteArr, byte(reg))
-		numInst++
-	}
-	if numInst != 3 {
-		return nil, errors.New("Wrong number of arguments. Expected 3, got " + strconv.Itoa(numInst))
-	}
-	return byteArr, nil
+	return LexIType(strArr, parent)
 }
 
-// TODO IMPLEMENT
 func LexUType(strArr []string, parent *Token) error {
-	var byteArr []byte
-	var numInst = 0
-	for _, str := range strArr[1 : len(strArr)-1] {
-		if len(str) == 0 {
-			continue
-		}
-		reg, ok := Register[strings.TrimSpace(str)]
-		if !ok {
-			return nil, errors.New("Unknown register type: " + strArr[0])
-		}
-		byteArr = append(byteArr, byte(reg))
-		numInst++
-	}
-	var immVal = strings.Replace(strArr[len(strArr)-1], "0x", "", 1)
-	resBytes := extractHex(immVal)
-
-	if resBytes == nil {
-		res, err := strconv.Atoi(immVal)
-		if err != nil {
-			return nil, errors.New("Immediate is not a number: " + immVal)
-		}
-
+	numInst, err := ParseRegisters(strArr[:len(strArr)-1], parent)
+	if err != nil {
+		return err
 	}
 
-	byteArr = append(byteArr, hexBytes...)
+	_, err = strconv.Atoi(strArr[len(strArr)-1])
+	if err != nil {
+		return errors.New("Last arg is not of type int " + strArr[len(strArr)-1])
+	}
 	numInst++
+
 	if numInst != 2 {
-		return nil, errors.New("Wrong number of arguments. Expected 2, got " + strconv.Itoa(numInst))
+		return errors.New("Wrong number of arguments. Expected 2, got " + strconv.Itoa(numInst))
 	}
-	return byteArr, nil
+
+	parent.children = append(parent.children, NewToken(literal, strArr[len(strArr)-1]))
+
+	return nil
 }
 
-// TODO: IMPLEMENT FOR REAL (jump to label) | ex : j loop_head
 func LexJType(strArr []string, parent *Token) error {
-	var byteArr []byte
-	if len(strArr) > 1 || len(strArr) == 0 {
-		return nil, errors.New("Wrong number of arguments. Expected 1, got " + strconv.Itoa(len(strArr)))
-	}
-
-	//var immVal = strArr[len(strArr)-1]
-
-	return byteArr, nil
+	return LexUType(strArr, parent)
 }
 
 func extractHex(immVal string) []byte {
