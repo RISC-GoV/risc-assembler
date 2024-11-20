@@ -28,7 +28,7 @@ func TestIType(t *testing.T) {
 	imm := 0b000000000101
 
 	expected := 0b00000000010100010000000010010011
-	result := IType(opcode, rd, func3, rs1, imm)
+	result := TranslateIType(opcode, rd, func3, rs1, imm)
 	if result != expected {
 		t.Errorf("expected %v, got %v", expected, result)
 		return
@@ -44,7 +44,7 @@ func TestSType(t *testing.T) {
 	imm11_5 := 0b0000000
 
 	expected := 0b00000000110000000000001010100011
-	result := SType(opcode, ihm4_0, func3, rs1, rs2, imm11_5)
+	result := TranslateSType(opcode, ihm4_0, func3, rs1, rs2, imm11_5)
 	if result != expected {
 		t.Errorf("expected %v, got %v", expected, result)
 		return
@@ -62,7 +62,7 @@ func TestBType(t *testing.T) {
 	imm12 := 0b0
 
 	expected := 0b00000000111110111000011001100011
-	result := BType(opcode, ihm_11, ihm4_1, func3, rs1, rs2, imm10_5, imm12)
+	result := TranslateBType(opcode, ihm_11, ihm4_1, func3, rs1, rs2, imm10_5, imm12)
 	if result != expected {
 		t.Errorf("expected %v, got %v", expected, result)
 		return
@@ -75,7 +75,7 @@ func TestUType(t *testing.T) {
 	ihm := 0b00000000000000010011
 
 	expected := 0b00000000000000010011100010110111
-	result := UType(opcode, rd, ihm)
+	result := TranslateUType(opcode, rd, ihm)
 	if result != expected {
 		t.Errorf("expected %v, got %v", expected, result)
 		return
@@ -91,7 +91,7 @@ func TestJType(t *testing.T) {
 	ihm20 := 0b0
 
 	expected := 0b00000000111000000000100111101111
-	result := JType(opcode, rd, ihm19_12, ihm11, ihm10_1, ihm20)
+	result := TranslateJType(opcode, rd, ihm19_12, ihm11, ihm10_1, ihm20)
 	if result != expected {
 		t.Errorf("expected %v, got %v", expected, result)
 		return

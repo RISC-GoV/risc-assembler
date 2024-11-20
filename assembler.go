@@ -1,6 +1,6 @@
 package main
 
-func RType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) int {
+func TranslateRType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) int {
 	//masks
 	opcode &= 0b1111111
 	rd &= 0b11111
@@ -25,7 +25,7 @@ func RType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) int {
 	return res
 }
 
-func IType(opcode int, rd int, func3 int, rs1 int, imm int) int {
+func TranslateIType(opcode int, rd int, func3 int, rs1 int, imm int) int {
 	//masks
 	opcode &= 0b1111111
 	rd &= 0b11111
@@ -47,7 +47,7 @@ func IType(opcode int, rd int, func3 int, rs1 int, imm int) int {
 	return res
 }
 
-func SType(opcode int, imm4_0 int, func3 int, rs1 int, rs2 int, imm11_5 int) int {
+func TranslateSType(opcode int, imm4_0 int, func3 int, rs1 int, rs2 int, imm11_5 int) int {
 	//masks
 	opcode &= 0b1111111
 	imm4_0 &= 0b11111
@@ -72,7 +72,7 @@ func SType(opcode int, imm4_0 int, func3 int, rs1 int, rs2 int, imm11_5 int) int
 	return res
 }
 
-func BType(opcode int, imm11 int, imm4_1 int, func3 int, rs1 int, rs2 int, imm10_5 int, imm12 int) int {
+func TranslateBType(opcode int, imm11 int, imm4_1 int, func3 int, rs1 int, rs2 int, imm10_5 int, imm12 int) int {
 	//masks
 	opcode &= 0b1111111
 	imm11 &= 0b1
@@ -103,7 +103,7 @@ func BType(opcode int, imm11 int, imm4_1 int, func3 int, rs1 int, rs2 int, imm10
 	return res
 }
 
-func UType(opcode int, rd int, imm int) int {
+func TranslateUType(opcode int, rd int, imm int) int {
 	//masks
 	opcode &= 0b1111111
 	rd &= 0b11111
@@ -118,7 +118,7 @@ func UType(opcode int, rd int, imm int) int {
 
 	return res
 }
-func JType(opcode int, rd int, imm19_12 int, imm11 int, imm10_1 int, imm20 int) int {
+func TranslateJType(opcode int, rd int, imm19_12 int, imm11 int, imm10_1 int, imm20 int) int {
 	//masks
 	opcode &= 0b1111111
 	rd &= 0b11111
