@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/hex"
 	"errors"
 	"os"
@@ -18,98 +17,85 @@ func check(e error) {
 func LexFile(inputFile string, outputFile string) { //todo
 	data, err := os.ReadFile(inputFile)
 	check(err)
-	_ = LexString(string(data))
-	//err = os.WriteFile(outputFile, output, 0111)
+	_ = TokenizeString(string(data))
+	err = os.WriteFile(outputFile, []byte(""), 011)
 	check(err)
 }
 
-func LexString(str string) []*Token {
-	var tokenArr []*Token
-	var buffer bytes.Buffer
-	var parentToken *Token
-	var functionToken *Token
-	for _, char := range str {
-		if char == '\n' {
-			var line = buffer.String()
-			if len(line) == 0 {
-				continue
-			}
-			if line[0] == '.' {
-				parentToken = NewToken(section, line[1:])
-				if parentToken != nil {
-					tokenArr = append(tokenArr, parentToken)
-				}
-			} else if parentToken != nil {
-				var outToken *Token
-				var err error
-				if functionToken != nil {
-					outToken, err = LexLine(line, functionToken)
-				} else {
-					outToken, err = LexLine(line, parentToken)
-				}
-				check(err)
-				if outToken != nil {
-					if outToken.tokenType == globalLabel {
-						functionToken = outToken
-					} else if outToken.tokenType == ret {
-						functionToken = nil
-					}
+func TokenizeString(str string) *Token {
+	var token *Token = NewToken(none, str)
+	for cursor := 0; cursor < len(str); {
+		//Start extracting section for tokenizing
+		for sectionCursor := cursor; sectionCursor < len(str); sectionCursor++ {
+			if str[sectionCursor] == '\n' && sectionCursor != len(str)-1 {
+				if str[sectionCursor] == '.' || sectionCursor == len(str)-1 { //End of previous section was reached
+
+					currentSection := str[cursor:sectionCursor]
+					sectionToken, err := TokenizeSection(currentSection)
+					check(err)
+					cursor = sectionCursor //Move cursor to start of next section
+					token.children = append(token.children, sectionToken)
+					break
 				}
 			}
-			buffer.Reset()
 		}
-		buffer.Grow(1)
-		buffer.WriteRune(char)
 	}
-	return tokenArr
+
+	return token
 }
 
-func LexLine(linePart string, parent *Token) (*Token, error) { //todo
+func TokenizeSection(section string) (*Token, error) {
+	return NewToken(none, ""), nil
+}
+
+func TokenizeLine(line string, parent *Token) (*Token, error) { //todo
 	var token *Token
-	if len(linePart) == 0 {
+	if len(line) == 0 {
 		return token, nil
 	}
-	if strings.TrimSpace(linePart) == "ret" {
-		token = NewToken(ret, linePart)
+	if strings.TrimSpace(line) == "ret" {
+		token = NewToken(ret, line)
 		parent.children = append(parent.children, token)
 		return token, nil
 	}
-	if linePart[0] == '.' {
-		token = NewToken(labelSection, linePart[1:])
+	if line[0] == '.' {
+		token = NewToken(labelSection, line[1:])
 		parent.children = append(parent.children, token)
 		return token, nil
 	}
-	if linePart[len(linePart)-1] == ':' {
-		_, err := strconv.Atoi(linePart[1 : len(linePart)-1])
+	if line[len(line)-1] == ':' {
+		_, err := strconv.Atoi(line[1 : len(line)-1])
 		if err != nil {
-			token = NewToken(globalLabel, linePart[:len(linePart)-1])
+			token = NewToken(globalLabel, line[:len(line)-1])
 			parent.children = append(parent.children, token)
 			return token, nil
 		}
-		token = NewToken(localLabel, linePart[1:len(linePart)-1])
+		token = NewToken(localLabel, line[1:len(line)-1])
 		parent.children = append(parent.children, token)
 		return token, nil
 	}
 
-	var strArr []string = strings.Split(linePart, ",")
-	if len(strings.Split(strArr[0], " ")) > 1 {
-		var splitStr = strings.Split(strArr[0], " ")
-		strArr = append([]string{splitStr[0], splitStr[1]}, strArr[1:]...)
+	var strArr []string = strings.Split(line, ",")
+	var splitStr = strings.Split(strArr[0], " ")
+	if len(splitStr) > 1 {
+		strArr = append([]string{splitStr[1]}, strArr[1:]...)
 	}
-
-	instructionSTR := strings.ToUpper(strings.ToLower(strArr[0]))
+	for index, str := range strArr {
+		strArr[index] = strings.TrimSpace(str)
+	}
+	instructionSTR := strings.ToLower(strings.ToLower(splitStr[0]))
 	instructionType, ok := InstructionToOpType[instructionSTR]
 	if !ok {
-		return token, errors.New("Unknown instruction type: " + strArr[0])
+		return token, errors.New("Unknown instruction type: '" + splitStr[0] + "'")
 	}
 
 	parent.children = append(parent.children, NewToken(instruction, instructionSTR))
 
 	var err error
 
-	switch instructionType {
+	switch instructionType.opType {
 	case R:
-		err = LexRType(strArr, parent)
+		err = ParseRegisters(strArr, parent)
 		break
 	case I:
 		err = LexIType(strArr, parent)
@@ -126,6 +112,32 @@ func LexLine(linePart string, parent *Token) (*Token, error) { //todo
 	case J:
 		err = LexJType(strArr, parent)
 		break
+	case CI:
+		err = LexJType(strArr, parent)
+		break
+	case CSS:
+		err = LexJType(strArr, parent)
+		break
+	case CL:
+		err = LexJType(strArr, parent)
+		break
+	case CJ:
+		err = LexJType(strArr, parent)
+		break
+	case CR:
+		err = ParseRegisters(strArr, parent)
+		break
+	case CB:
+		err = LexJType(strArr, parent)
+		break
+	case CIW:
+		err = LexJType(strArr, parent)
+		break
+	case CS:
+		err = LexJType(strArr, parent)
+		break
+	default:
+		panic("unhandled default case")
 	}
 
 	if err != nil {
@@ -134,85 +146,54 @@ func LexLine(linePart string, parent *Token) (*Token, error) { //todo
 	return parent.children[len(parent.children)-1], nil
 }
 
-func ParseRegisters(strArr []string, parent *Token) (int, error) {
+func ParseRegisters(strArr []string, parent *Token) error {
 	var numInst = 0
 	for _, str := range strArr {
 		if len(str) == 0 {
 			continue
 		}
-		_, ok := Register[strings.TrimSpace(str)]
-		if !ok {
-			return 0, errors.New("Unknown register type: " + strArr[0])
-		}
 		parent.children = append(parent.children, NewToken(register, strings.TrimSpace(str)))
 		numInst++
-	}
-	return numInst, nil
-}
-
-func LexRType(strArr []string, parent *Token) error {
-	numInst, err := ParseRegisters(strArr, parent)
-	if err != nil {
-		return err
-	}
-	if numInst != 3 {
-		return errors.New("Wrong number of arguments. Expected 3, got " + strconv.Itoa(numInst))
 	}
 	return nil
 }
 
 func LexIType(strArr []string, parent *Token) error {
-	numInst, err := ParseRegisters(strArr[:len(strArr)-1], parent)
+	err := ParseRegisters(strArr[:len(strArr)-1], parent)
 	if err != nil {
 		return err
 	}
 
 	_, err = strconv.Atoi(strArr[len(strArr)-1])
 	if err != nil {
-		return errors.New("Last arg is not of type int " + strArr[len(strArr)-1])
+		return errors.New("I TYPE: Last arg is not of type int: '" + strArr[len(strArr)-1] + "'")
 	}
-	numInst++
-
-	if numInst != 3 {
-		return errors.New("Wrong number of arguments. Expected 3, got " + strconv.Itoa(numInst))
-	}
-
 	parent.children = append(parent.children, NewToken(literal, strArr[len(strArr)-1]))
 
 	return nil
 }
 
 func LexSType(strArr []string, parent *Token) error {
-	numInst, err := ParseRegisters(strArr[:len(strArr)-1], parent)
+	err := ParseRegisters(strArr[:len(strArr)-1], parent)
 	if err != nil {
 		return err
 	}
-	var vals = strings.Split(strings.TrimSpace(strArr[len(strArr)-1]), "(")
+	var vals = strings.Split(strArr[len(strArr)-1], "(")
 	if len(vals) != 2 {
-		return errors.New("Last arg is not of format 'offset(register)' " + strArr[len(strArr)-1])
+		return errors.New("S TYPE: Last arg is not of format 'offset(register)' " + strArr[len(strArr)-1])
 	}
 
 	_, err = strconv.Atoi(vals[0])
 	if err != nil {
-		return errors.New("Offset is not a number " + vals[0])
-	}
-
-	var _, ok = Register[strings.TrimSpace(vals[1][:len(vals[1])-1])]
-	if !ok {
-		return errors.New("Unknown register type: " + vals[1])
+		return errors.New("S TYPE: Offset is not a number " + vals[0])
 	}
 
 	parent.children = append(
 		parent.children,
-		&Token{complexValue, strings.TrimSpace(strArr[len(strArr)-1]), []*Token{
+		&Token{complexValue, strArr[len(strArr)-1], []*Token{
 			NewToken(literal, vals[0]),
 			NewToken(register, strings.TrimSpace(vals[1][:len(vals[1])-1])),
 		}})
-	numInst++
-
-	if numInst != 3 {
-		return errors.New("Wrong number of arguments. Expected 2, got " + strconv.Itoa(numInst))
-	}
 	return nil
 }
 
@@ -228,7 +209,7 @@ func LexUType(strArr []string, parent *Token) error {
 
 	_, err = strconv.Atoi(strArr[len(strArr)-1])
 	if err != nil {
-		return errors.New("Last arg is not of type int " + strArr[len(strArr)-1])
+		return errors.New("U TYPE: Last arg is not of type int " + strArr[len(strArr)-1])
 	}
 	numInst++
 

@@ -1,91 +1,83 @@
 package main
 
-type OpTypes int
+type OpCode int
 
 const (
-	R OpTypes = iota
+	R OpCode = iota
 	I
 	S
 	B
 	U
 	J
+	CI
+	CSS
+	CL
+	CJ
+	CR
+	CB
+	CIW
+	CS
 )
 
-var InstructionToOpType = map[string]OpTypes{
-	"LUI":   U,
-	"AUIPC": U,
-	"JAL":   J,
-	"JALR":  I,
-	"BEQ":   B,
-	"BNE":   B,
-	"BLT":   B,
-	"BGE":   B,
-	"BLTU":  B,
-	"BGEU":  B,
-	"LB":    I,
-	"LH":    I,
-	"LW":    I,
-	"LBU":   I,
-	"LHU":   I,
-	"SB":    S,
-	"SH":    S,
-	"SW":    S,
-	"ADDI":  I,
-	"SLTI":  I,
-	"SLTIU": I,
-	"XORI":  I,
-	"ORI":   I,
-	"ANDI":  I,
-	"SLLI":  R,
-	"SRLI":  I,
-	"SRAI":  I,
-	"ADD":   R,
-	"SUB":   R,
-	"SLL":   R,
-	"SLT":   R,
-	"SLTU":  R,
-	"XOR":   R,
-	"SRL":   R,
-	"SRA":   R,
-	"OR":    R,
-	"AND":   R,
+type OpPair struct {
+	opType OpCode
+	opByte []byte
 }
 
-type Func struct {
-}
+var InstructionToOpType = map[string]OpPair{
 
-var Register = map[string]byte{
-	"zero": 0x0,
-	"ra":   0x1,
-	"sp":   0x2,
-	"gp":   0x3,
-	"tp":   0x4,
-	"t0":   0x5,
-	"t1":   0x6,
-	"t2":   0x7,
-	"s0":   0x8,
-	"fp":   0x8,
-	"s1":   0x9,
-	"a0":   0x10,
-	"a1":   0x11,
-	"a2":   0x12,
-	"a3":   0x13,
-	"a4":   0x14,
-	"a5":   0x15,
-	"a6":   0x16,
-	"a7":   0x17,
-	"s2":   0x18,
-	"s3":   0x19,
-	"s4":   0x20,
-	"s5":   0x21,
-	"s6":   0x22,
-	"s7":   0x23,
-	"s8":   0x25,
-	"s9":   0x26,
-	"s10":  0x26,
-	"s11":  0x27,
-	"t3":   0x28,
-	"t4":   0x29,
-	"t5":   0x30,
-	"t6":   0x31,
+	// I TYPE
+
+	"lui":    {U, []byte{0b0110111}},
+	"auipc":  {U, []byte{0b0110011}},
+	"jal":    {J, []byte{0b1101111}},
+	"jalr":   {I, []byte{0b1101111, 0x0}},
+	"beq":    {B, []byte{0b1100011, 0x0}},
+	"bne":    {B, []byte{0b1100011, 0x1}},
+	"blt":    {B, []byte{0b1100011, 0x4}},
+	"bge":    {B, []byte{0b1100011, 0x5}},
+	"bltu":   {B, []byte{0b1100011, 0x6}},
+	"bgeu":   {B, []byte{0b1100011, 0x7}},
+	"lb":     {I, []byte{0b0000011, 0x0}},
+	"lh":     {I, []byte{0b0000011, 0x1}},
+	"lw":     {I, []byte{0b0000011, 0x2}},
+	"lbu":    {I, []byte{0b0000011, 0x4}},
+	"lhu":    {I, []byte{0b0000011, 0x5}},
+	"sb":     {S, []byte{0b0100011, 0x0}},
+	"sh":     {S, []byte{0b0100011, 0x1}},
+	"sw":     {S, []byte{0b0100011, 0x2}},
+	"addi":   {I, []byte{0b0010011, 0x0}},
+	"slti":   {I, []byte{0b0010011, 0x2}},
+	"sltiu":  {I, []byte{0b0010011, 0x3}},
+	"xori":   {I, []byte{0b0010011, 0x4}},
+	"ori":    {I, []byte{0b0010011, 0x6}},
+	"andi":   {I, []byte{0b0010011, 0x7}},
+	"slli":   {I, []byte{0b0010011, 0x1, 0x00}},
+	"srli":   {I, []byte{0b0010011, 0x5, 0x00}},
+	"srai":   {I, []byte{0b0010011, 0x5, 0x20}},
+	"add":    {R, []byte{0b0110011, 0x0, 0x00}},
+	"sub":    {R, []byte{0b0110011, 0x0, 0x20}},
+	"sll":    {R, []byte{0b0110011, 0x1, 0x00}},
+	"slt":    {R, []byte{0b0110011, 0x2, 0x00}},
+	"sltu":   {R, []byte{0b0110011, 0x3, 0x00}},
+	"xor":    {R, []byte{0b0110011, 0x4, 0x00}},
+	"srl":    {R, []byte{0b0110011, 0x5, 0x00}},
+	"sra":    {R, []byte{0b0110011, 0x5, 0x20}},
+	"or":     {R, []byte{0b0110011, 0x6, 0x00}},
+	"and":    {R, []byte{0b0110011, 0x7, 0x00}},
+	"nop":    {R, []byte{0b0110011, 0x7, 0x00}}, //todo check code
+	"ebreak": {I, []byte{0b0110011, 0x7, 0x00}}, //todo check code
+	"ecall":  {I, []byte{0b0110011, 0x7, 0x00}}, //todo check code
+
+	// C TYPE
+	//TODO change binary and hex codes
+	"fld":  {CL, []byte{0b0110011, 0x7, 0x00}},
+	"flw":  {CI, []byte{0b0110011, 0x7, 0x00}},
+	"fsd":  {CSS, []byte{0b0110011, 0x7, 0x00}},
+	"fsw":  {CSS, []byte{0b0110011, 0x7, 0x00}},
+	"li":   {CI, []byte{0b0110011, 0x7, 0x00}},
+	"j":    {CJ, []byte{0b0110011, 0x7, 0x00}},
+	"beqz": {CB, []byte{0b0110011, 0x7, 0x00}},
+	"jr":   {CR, []byte{0b0110011, 0x7, 0x00}},
+	"mv":   {CR, []byte{0b0110011, 0x7, 0x00}},
 }

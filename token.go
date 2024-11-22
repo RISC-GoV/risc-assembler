@@ -9,7 +9,8 @@ import (
 type TokenType int
 
 const (
-	section TokenType = iota
+	global = iota
+	section
 	data
 	localLabel
 	globalLabel
@@ -20,6 +21,7 @@ const (
 	literal
 	comment
 	ret
+	none
 )
 
 type Token struct {
