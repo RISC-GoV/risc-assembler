@@ -146,7 +146,7 @@ func TokenizeLine(line string, parent *Token) (*Token, error) { //todo
 	return parent.children[len(parent.children)-1], nil
 }
 
-func ParseRegisters(strArr []string, parent *Token) error {
+func ParseRegisters(strArr []string, parent *Token) error { //todo check for errors
 	var numInst = 0
 	for _, str := range strArr {
 		if len(str) == 0 {
@@ -202,7 +202,7 @@ func LexBType(strArr []string, parent *Token) error {
 }
 
 func LexUType(strArr []string, parent *Token) error {
-	numInst, err := ParseRegisters(strArr[:len(strArr)-1], parent)
+	err := ParseRegisters(strArr[:len(strArr)-1], parent)
 	if err != nil {
 		return err
 	}
@@ -210,11 +210,6 @@ func LexUType(strArr []string, parent *Token) error {
 	_, err = strconv.Atoi(strArr[len(strArr)-1])
 	if err != nil {
 		return errors.New("U TYPE: Last arg is not of type int " + strArr[len(strArr)-1])
-	}
-	numInst++
-
-	if numInst != 2 {
-		return errors.New("Wrong number of arguments. Expected 2, got " + strconv.Itoa(numInst))
 	}
 
 	parent.children = append(parent.children, NewToken(literal, strArr[len(strArr)-1]))
