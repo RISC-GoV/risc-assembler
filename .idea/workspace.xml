@@ -8,6 +8,13 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/type_encoders.go" beforeDir="false" afterPath="$PROJECT_DIR$/type_encoders.go" afterDir="false" />
     </list>
+    <list id="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" name="Changes by louis" comment="">
+      <change beforePath="$PROJECT_DIR$/assembler.go" beforeDir="false" afterPath="$PROJECT_DIR$/assembler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/compiler.go" beforeDir="false" afterPath="$PROJECT_DIR$/compiler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/defines.go" beforeDir="false" afterPath="$PROJECT_DIR$/defines.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testfile/file.asm" beforeDir="false" afterPath="$PROJECT_DIR$/testfile/file.asm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/type_encoders.go" beforeDir="false" afterPath="$PROJECT_DIR$/type_encoders.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,10 +24,31 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 8
-}]]></component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/type_encoders.go">
+      <ranges>
+        <range start1="5" end1="5" start2="5" end2="6" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="164" end1="165" start2="165" end2="166" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="169" end1="170" start2="170" end2="171" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="189" end1="190" start2="190" end2="191" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="196" end1="201" start2="197" end2="198" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="205" end1="206" start2="202" end2="203" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="212" end1="217" start2="209" end2="210" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="221" end1="222" start2="214" end2="215" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="224" end1="225" start2="217" end2="218" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="228" end1="233" start2="221" end2="223" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="237" end1="238" start2="227" end2="228" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="243" end1="244" start2="233" end2="234" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="248" end1="249" start2="238" end2="239" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
+        <range start1="254" end1="255" start2="244" end2="245" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+        <range start1="280" end1="280" start2="270" end2="366" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
+      </ranges>
+    </file>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="2q578JobacVICvb0sUXsNh0pJTL" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -43,7 +71,8 @@
     "last_opened_file_path": "C:/Users/quent",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm"
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
   }
 }]]></component>
   <component name="RunManager">

@@ -13,18 +13,27 @@ func compile(token *Token) Program {
 	if len(prog.strings) == 1 {
 		prog.strings = nil
 	}
+	if compilationEntryPoint != "" {
+		val, _ := labelPositions[compilationEntryPoint]
+		var bts = make([]byte, 4)
+		binary.LittleEndian.PutUint32(bts, uint32(val))
+		prog.entrypoint = [4]byte(bts)
+	} else {
+		val, _ := labelPositions["main"]
+		var bts = make([]byte, 4)
+		binary.LittleEndian.PutUint32(bts, uint32(val))
+		prog.entrypoint = [4]byte(bts)
+	}
 	return prog
 }
 
-type labelMention struct {
-	name            string
-	mentionPosition string
-}
-
 var (
-	labelMentions         []labelMention
 	labelPositions        map[string]int
 	compilationEntryPoint string
+	instructionCount      int
+	variableCount         int
+	constantCount         int
+	stringCount           int = 8
 )
 
 func (p *Program) recursiveCompilation(token *Token) {
@@ -43,28 +52,32 @@ func (p *Program) recursiveCompilation(token *Token) {
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 1)
 			varValue = append(varValue, byte(val))
 		case ".hword":
 			val, err := strconv.Atoi(token.children[1].value)
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 2)
 			binary.LittleEndian.PutUint16(varValue, uint16(val))
 		case ".word":
 			val, err := strconv.Atoi(token.children[1].value)
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 4)
 			binary.LittleEndian.PutUint32(varValue, uint32(val))
 		case ".dword":
 			val, err := strconv.Atoi(token.children[1].value)
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 8)
 			binary.LittleEndian.PutUint64(varValue, uint64(val))
 		}
 
-		labelPositions[token.children[0].value] = len(p.variables)
+		labelPositions[strings.ReplaceAll(token.children[0].value, ".", "")] = instructionCount + len(p.variables)
 		p.variables = append(p.variables, varValue...)
 	case constantValue:
 		var varValue []byte
@@ -79,39 +92,42 @@ func (p *Program) recursiveCompilation(token *Token) {
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 1)
 			varValue = append(varValue, byte(val))
 		case ".hword":
 			val, err := strconv.Atoi(token.children[1].value)
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 2)
 			binary.LittleEndian.PutUint16(varValue, uint16(val))
 		case ".word":
 			val, err := strconv.Atoi(token.children[1].value)
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 4)
 			binary.LittleEndian.PutUint32(varValue, uint32(val))
 		case ".dword":
 			val, err := strconv.Atoi(token.children[1].value)
 			if err != nil {
 				panic(err)
 			}
+			varValue = make([]byte, 8)
 			binary.LittleEndian.PutUint64(varValue, uint64(val))
 		}
 
-		labelPositions[token.children[0].value] = len(p.constants)
 		p.constants = append(p.constants, varValue...)
 	case constant:
-		labelPositions[strings.Replace(strings.Replace(token.value, ".", "", 1), ":", "", 1)] = len(p.machinecode)
+		labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCount + variableCount + len(p.constants)
 		p.callDescendants(token)
 	case globalLabel:
-		labelPositions[strings.Replace(token.value, ".", "", 1)] = len(p.machinecode)
+		labelPositions[strings.Replace(token.value, ":", "", 1)] = len(p.machinecode)
 		fallthrough
 	case section:
 		p.callDescendants(token)
 	case instruction:
-		val, err := InstructionToBinary(token)
+		val, err := p.InstructionToBinary(token)
 		if err != nil {
 			panic(err)
 		}

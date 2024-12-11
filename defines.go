@@ -173,3 +173,22 @@ func getOpCode(opc OpCode) string {
 	}
 	return ""
 }
+
+// return false if string
+func getVarSize(vT string) (int, bool) {
+	switch vT {
+	case ".string":
+		fallthrough
+	case ".asciz":
+		return 0, false
+	case ".byte":
+		return 8, true
+	case ".hword":
+		return 16, true
+	case ".word":
+		return 32, true
+	case ".dword":
+		return 64, true
+	}
+	return 0, true
+}

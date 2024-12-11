@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -40,9 +41,21 @@ func (a *Assembler) Assemble(filename string) error {
 
 	str := printTokenTree(a.Token, 0)
 	println("parsing saved to ./testfile/output.parser")
+	fmt.Println("blocks sizes")
+	fmt.Print("instructions: ")
+	fmt.Println(instructionCount)
+	fmt.Print("variables: ")
+	fmt.Println(variableCount)
+	fmt.Print("constants: ")
+	fmt.Println(constantCount)
+	fmt.Print("strings: ")
+	fmt.Println(stringCount)
 	os.WriteFile("./testfile/output.parser", []byte(str), 0644)
 
-	// compile(a.Token)
+	prog := compile(a.Token)
+	bytes := BuildELFFile(prog)
+	fmt.Printf("% x", *bytes)
+	os.WriteFile("./testfile/output.go", *bytes, 0644)
 	return scanner.Err()
 }
 
@@ -104,8 +117,15 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				return tk, nil
 			} else {
 				// constant variable defined without label
+
+				varS, isN := getVarSize(lineParts[0])
+				if isN {
+					constantCount += varS
+				} else {
+					stringCount += len(strings.TrimSpace(strings.Join(lineParts[1:], " ")))*8 - 8
+				}
 				//add var size and value
-				parent.children = []*Token{NewToken(varSize, cleanupStr(lineParts[0]), parent), NewToken(varValue, cleanupStr(lineParts[1]), parent)}
+				parent.children = []*Token{NewToken(varSize, cleanupStr(lineParts[0]), parent), NewToken(varValue, cleanupStr(strings.Join(lineParts[1:], " ")), parent)}
 				return parent, nil
 			}
 		} else {
@@ -131,17 +151,32 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				return tk, nil
 			} else {
 				//vars
+				//increase instruction count to keep track of variable Size
+				varS, isN := getVarSize(lineParts[1])
+				if isN {
+					variableCount += varS
+				} else {
+					stringCount += len(strings.TrimSpace(strings.Join(lineParts[2:], " ")))*8 - 8
+				}
 				tk := NewToken(varLabel, ln, parent)
 				//add var size and value
-				tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, cleanupStr(lineParts[2]), tk)}
+				tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, cleanupStr(strings.Join(lineParts[2:], " ")), tk)}
 				parent.children = append(parent.children, tk)
 				return parent, nil
 			}
 		} else if parent.tokenType == section || parent.tokenType == constant {
 			//vars
+			//increase instruction count to keep track of variable Size
+			varS, isN := getVarSize(lineParts[1])
+			if isN {
+				variableCount += varS
+			} else {
+				stringCount += len(strings.TrimSpace(strings.Join(lineParts[2:], " ")))*8 - 8
+			}
+
 			tk := NewToken(varLabel, ln, parent)
 			//add var size and value
-			tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, cleanupStr(lineParts[2]), tk)}
+			tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, cleanupStr(strings.Join(lineParts[2:], " ")), tk)}
 			parent.children = append(parent.children, tk)
 			return parent, nil
 		}
@@ -157,6 +192,8 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	lineParts = lineParts[1:]
 	var err error
 
+	//increase instruction count to keep track of machineCode Size
+	instructionCount += 32
 	if ln == "ebreak" || ln == "ecall" || ln == "call" {
 		return parent, nil
 	}
