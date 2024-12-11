@@ -55,6 +55,7 @@ func (a *Assembler) Assemble(filename string) error {
 
 	return scanner.Err()
 }
+
 func removeEmptyStrings(arr []string) []string {
 	result := make([]string, 0, len(arr))
 
@@ -107,24 +108,24 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 		return parent, errors.New(". found but not matching")
 	}
 
-	//either label or var
+	// either label or var
 	if ln[len(ln)-1] == ':' {
 		if parent.tokenType == global || parent.tokenType == section && parent.value == ".text" {
-			//code
+			// code
 			println("globalLabel " + ln)
 			tk := NewToken(globalLabel, ln, parent)
 			parent.children = append(parent.children, tk)
 			return tk, nil
 		} else if parent.tokenType == section {
-			//vars
+			// vars
 			println("varLabel " + ln)
 			tk := NewToken(varLabel, ln, parent)
-			//add var size and value
+			// add var size and value
 			tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), parent), NewToken(varValue, cleanupStr(lineParts[2]), parent)}
 			parent.children = append(parent.children, tk)
 			return parent, nil
 		} else {
-			//local label
+			// local label
 			println("localLabel " + ln)
 			tk := NewToken(localLabel, ln, parent)
 			parent.children = append(parent.children, tk)
@@ -192,8 +193,8 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	return parent, nil
 }
 
-func ParseRegisters(strArr []string, parent *Token) error { //todo check for errors
-	var numInst = 0
+func ParseRegisters(strArr []string, parent *Token) error { // todo check for errors
+	numInst := 0
 	for _, str := range strArr {
 		if len(str) == 0 {
 			continue
@@ -225,8 +226,8 @@ func LexSType(strArr []string, parent *Token) error {
 	if err != nil {
 		return err
 	}
-	var vals = strings.Split(strArr[len(strArr)-1], "(")
-	if len(vals) != 2 { //todo
+	vals := strings.Split(strArr[len(strArr)-1], "(")
+	if len(vals) != 2 { // todo
 		return errors.New("S TYPE: Last arg is not of format 'offset(register)' " + strArr[len(strArr)-1])
 	}
 
@@ -276,58 +277,4 @@ func extractHex(immVal string) []byte {
 		return nil
 	}
 	return hexBytes
-}
-
-func copybytes(source []byte, dest []byte, amt int, sourceoffset int, destoffset int) {
-	for i := 0; i < amt; i++ {
-		dest[destoffset+i] = source[sourceoffset+i]
-	}
-}
-
-func GenerateELFHeaders(e_entry []byte, e_phof []byte, e_shoff []byte, e_phnum []byte, e_shnum []byte, e_shstrndx []byte) []byte {
-	var elfheader []byte
-	//Magic Number
-	elfheader[0x0] = 0x7F
-	elfheader[0x1] = 0x45  //E
-	elfheader[0x2] = 0x4c  //L
-	elfheader[0x3] = 0x46  //F
-	elfheader[0x4] = 0x01  //32bit
-	elfheader[0x5] = 0x01  //LE
-	elfheader[0x6] = 0x01  //ELF Version
-	elfheader[0x7] = 0x03  //Linux ABI
-	elfheader[0x10] = 0x02 //Executable
-	elfheader[0x12] = 0xF3 //RISC-V
-	elfheader[0x14] = 0x01
-	//EntryPoint Address
-	copybytes(e_entry, elfheader, 2, 0, 0x18)
-	//Program Header Address
-	copybytes(e_phof, elfheader, 2, 0, 0x1C)
-	//Section Header Address
-	copybytes(e_shoff, elfheader, 2, 0, 0x20)
-	elfheader[0x24] = 0x00 //???
-	elfheader[0x28] = 0x34 //Len = 52 Bytes
-	elfheader[0x2A] = 0x20 //32bits
-	//Amount of Entries in Program Header
-	copybytes(e_phnum, elfheader, 2, 0, 0x2C)
-	elfheader[0x2E] = 0x28 //Header entry size
-	//Amount of Entries in Section Header
-	copybytes(e_shnum, elfheader, 2, 0, 0x30)
-	//Index of SHT entry containing names
-	copybytes(e_shstrndx, elfheader, 2, 0, 0x32)
-	return elfheader
-}
-
-func GenerateELFProgramHeaders() []byte {
-	var programheaders []byte
-	programheaders[0x03] = 0x01 //PT_LOAD
-	programheaders[0x07] = 0x54 //52 + 32 Bytes (Size of ELF Header +  Program Header)
-	return []byte{}
-}
-
-func GenerateELFSectionHeaders() []byte {
-	return []byte{}
-}
-
-func BuildELFFile(program []byte, entry_point int) []byte {
-	return []byte{}
 }
