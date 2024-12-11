@@ -17,7 +17,7 @@ func GenerateELFHeaders(e_entry [4]byte, e_phnum [2]byte) *[0x34]byte {
 	elfHeader[0x12] = 0xF3 // RISC-V
 	elfHeader[0x14] = 0x01
 	// EntryPoint Address
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 4; i++ {
 		elfHeader[0x18+i] = e_entry[i]
 	}
 	elfHeader[0x1C] = 0x34 // Program Header Address
@@ -33,20 +33,20 @@ func GenerateELFHeaders(e_entry [4]byte, e_phnum [2]byte) *[0x34]byte {
 func GenerateSingleELFProgramHeader(htype byte, offset [4]byte, size [4]byte) *[0x28]byte {
 	var programHeader [0x28]byte
 	programHeader[0x00] = 0x01 // PT_LOAD
-	for i := 0x01; i < 0x05; i++ {
-		programHeader[i] = offset[i-1]      // File offset
-		programHeader[i+0x04] = offset[i-1] // Memory offset
+	for i := 0; i < 4; i++ {
+		programHeader[i+0x04] = offset[i] // File offset
+		programHeader[i+0x08] = offset[i] // Memory offset
 	}
-	for i := 0x10; i < 0x15; i++ {
-		programHeader[i] = size[i-0x10]      // Size
-		programHeader[i+0x04] = size[i-0x10] // Size
+	for i := 0; i < 4; i++ {
+		programHeader[i+0x10] = size[i] // Size
+		programHeader[i+0x14] = size[i] // Size
 	}
 	programHeader[0x18] = htype // RWX
 	return &programHeader
 }
 
 func BuildELFFile(program Program) *[]byte {
-	var headerAmount uint16 = 0
+	var headerAmount uint16 = 1
 
 	if program.constants != nil {
 		headerAmount++
@@ -61,7 +61,6 @@ func BuildELFFile(program Program) *[]byte {
 	finalOffset := uint32(headerAmount * 0x28)
 	offset := make([]byte, 4)
 	size := make([]byte, 4)
-
 	binary.LittleEndian.PutUint32(offset, finalOffset)
 	binary.LittleEndian.PutUint32(size, uint32(len(program.machinecode)))
 
