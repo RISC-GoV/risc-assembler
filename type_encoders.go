@@ -162,7 +162,7 @@ func TranslateJType(opcode int, rd int, imm int) uint32 {
 	return invertBits(res)
 }
 
-func InstructionToBinary(t *Token) (uint32, error) {
+func InstructionToBinary(t *Token) (uint32, error) { //todo check for all strconv
 	if t.tokenType != instruction {
 		return 0, errors.New("expected instruction")
 	}
@@ -230,8 +230,10 @@ func InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		imm := 0
-		// TODO imm :=
+		imm, err := strconv.Atoi(t.children[3].value)
+		if err != nil {
+			return 0, err
+		}
 		return TranslateBType(opcode, func3, rs1, rs2, imm), nil
 	case U:
 		opcode := int(t.opPair.opByte[0])
@@ -250,8 +252,10 @@ func InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		imm := 0
-		// TODO imm := t.children[0].
+		imm, err := strconv.Atoi(t.children[0].value)
+		if err != nil {
+			return 0, err
+		}
 		return TranslateJType(opcode, rd, imm), nil
 	case CI:
 		return 0, errors.New("todo: compressed instructions") //todo
