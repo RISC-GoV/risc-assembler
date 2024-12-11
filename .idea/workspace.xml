@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/encodings.go" beforeDir="false" afterPath="$PROJECT_DIR$/encodings.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/type_encoders.go" beforeDir="false" afterPath="$PROJECT_DIR$/type_encoders.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
