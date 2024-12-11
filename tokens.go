@@ -12,14 +12,18 @@ const (
 	global = iota
 	section
 	data
+	symbol
 	localLabel
 	globalLabel
+	modifier
 	complexValue
 	instruction
 	register
 	literal
+	sign
 	entrypoint
 	constant
+	constantValue
 	varValue
 	varLabel
 	varSize
@@ -32,12 +36,18 @@ const (
 type Token struct {
 	tokenType TokenType
 	value     string
+	opPair    *OpPair
 	children  []*Token
 	parent    *Token
 }
 
-func NewToken(tokenType TokenType, value string, parent *Token) *Token {
-	return &Token{tokenType: tokenType, value: value, children: make([]*Token, 0), parent: parent}
+func NewToken(tokenType TokenType, value string, parent *Token, pair_optional ...*OpPair) *Token {
+
+	var pair *OpPair
+	if len(pair_optional) > 0 {
+		pair = pair_optional[0]
+	}
+	return &Token{tokenType: tokenType, value: value, children: make([]*Token, 0), parent: parent, opPair: pair}
 }
 
 func (t *Token) getValue() string {

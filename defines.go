@@ -62,6 +62,7 @@ var InstructionToOpType = map[string]OpPair{
 	"srai":   {I, []byte{0b0010011, 0x5, 0x20}},
 	"ebreak": {I, []byte{0b0000000, 0x0, 0x0}}, // Adjust as needed
 	"ecall":  {I, []byte{0b0000000, 0x0, 0x1}}, // Adjust as needed
+	"call":   {I, []byte{}},                    // Adjust as needed
 
 	// R TYPE
 	"add":  {R, []byte{0b0110011, 0x0, 0x00}},
@@ -86,5 +87,89 @@ var InstructionToOpType = map[string]OpPair{
 	"c.bne": {CB, []byte{0b000001}},                                        // Compressed branch if not equal
 	"c.lw":  {CL, []byte{0b000001}},                                        // Compressed load word
 	"c.sw":  {CS, []byte{0b000001}},                                        // Compressed store word
-	"c.li":  {CI, []byte{0b000000, 0b000}},                                 // Compressed load immediate
+	"li":    {CI, []byte{0b000000, 0b000}},                                 // Compressed load immediate
+}
+
+func getTType(ti TokenType) string {
+	switch ti {
+	case global:
+		return "global"
+	case section:
+		return "section"
+	case data:
+		return "data"
+	case sign:
+		return "sign"
+	case modifier:
+		return "modifier"
+	case symbol:
+		return "symbol"
+	case localLabel:
+		return "localLabel"
+	case globalLabel:
+		return "globalLabel"
+	case complexValue:
+		return "complexValue"
+	case instruction:
+		return "instruction"
+	case register:
+		return "register"
+	case literal:
+		return "literal"
+	case entrypoint:
+		return "entrypoint"
+	case constant:
+		return "constant"
+	case constantValue:
+		return "constantValue"
+	case varValue:
+		return "varValue"
+	case varLabel:
+		return "varLabel"
+	case varSize:
+		return "varSize"
+	case constLabel:
+		return "constLabel"
+	case comment:
+		return "comment"
+	case ret:
+		return "ret"
+	case none:
+		return "none"
+	}
+	return ""
+}
+
+func getOpCode(opc OpCode) string {
+	switch opc {
+	case R:
+		return "R"
+	case I:
+		return "I"
+	case S:
+		return "S"
+	case B:
+		return "B"
+	case U:
+		return "U"
+	case J:
+		return "J"
+	case CI:
+		return ""
+	case CSS:
+		return ""
+	case CL:
+		return ""
+	case CJ:
+		return ""
+	case CR:
+		return ""
+	case CB:
+		return ""
+	case CIW:
+		return ""
+	case CS:
+		return ""
+	}
+	return ""
 }
