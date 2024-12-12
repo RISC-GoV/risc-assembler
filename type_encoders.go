@@ -167,6 +167,15 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 	if t.tokenType != instruction {
 		return 0, errors.New("expected instruction")
 	}
+	if t.value == "ecall" {
+		opcode := 0b1110011
+		func3 := 0
+		rd := 0
+		rs1 := 0
+		imm := 0
+
+		return TranslateIType(opcode, rd, func3, rs1, imm), nil
+	}
 	switch t.opPair.opType {
 	case R: // add x0, x0, x0
 		if len(t.children) != 3 {
@@ -349,13 +358,13 @@ func parseLabelOrLiteral(tok *Token) (int, error) {
 	case varLabel:
 		fallthrough
 	case constantValue:
-		imm, ok := labelPositions[tok.children[0].value]
+		imm, ok := labelPositions[tok.value]
 		if !ok {
-			return 0, errors.New(tok.children[0].value + "not found")
+			return 0, errors.New(tok.value + " not found")
 		}
 		return imm, nil
 	case literal:
-		imm, err := strconv.Atoi(tok.children[0].value)
+		imm, err := strconv.Atoi(tok.value)
 		if err != nil {
 			return 0, err
 		}

@@ -54,7 +54,6 @@ func (a *Assembler) Assemble(filename string) error {
 
 	prog := compile(a.Token)
 	bytes := BuildELFFile(prog)
-	fmt.Printf("% x", *bytes)
 	os.WriteFile("./testfile/output.go", *bytes, 0644)
 	return scanner.Err()
 }

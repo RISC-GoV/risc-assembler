@@ -26,12 +26,12 @@ func GenerateELFHeaders(e_entry [4]byte, e_phnum [2]byte) *[0x34]byte {
 	// Amount of Entries in Program Header
 	elfHeader[0x2C] = e_phnum[0]
 	elfHeader[0x2D] = e_phnum[1]
-	elfHeader[0x2E] = 0x28 // Header entry size
+	elfHeader[0x2E] = 0x20 // Header entry size
 	return &elfHeader
 }
 
-func GenerateSingleELFProgramHeader(htype byte, offset [4]byte, size [4]byte) *[0x28]byte {
-	var programHeader [0x28]byte
+func GenerateSingleELFProgramHeader(htype byte, offset [4]byte, size [4]byte) *[0x20]byte {
+	var programHeader [0x20]byte
 	programHeader[0x00] = 0x01 // PT_LOAD
 	for i := 0; i < 4; i++ {
 		programHeader[i+0x04] = offset[i] // File offset
@@ -58,7 +58,7 @@ func BuildELFFile(program Program) *[]byte {
 		headerAmount++
 	}
 
-	finalOffset := uint32(headerAmount * 0x28)
+	finalOffset := uint32(headerAmount*0x20) + 0x34
 	offset := make([]byte, 4)
 	size := make([]byte, 4)
 	binary.LittleEndian.PutUint32(offset, finalOffset)
@@ -86,13 +86,16 @@ func BuildELFFile(program Program) *[]byte {
 		binary.LittleEndian.PutUint32(size, uint32(len(program.strings)))
 		file = append(file, GenerateSingleELFProgramHeader(0x04, *(*[4]byte)(offset), *(*[4]byte)(size))[:]...)
 	}
-	trueEntry := uint32(headerAmount*0x28) + binary.LittleEndian.Uint32(program.entrypoint[:])
+	trueEntry := uint32(headerAmount*0x20) + 0x34 + binary.LittleEndian.Uint32(program.entrypoint[:])
 	entrypoint := make([]byte, 4)
 	binary.LittleEndian.PutUint32(entrypoint, trueEntry)
 	hamt := make([]byte, 2)
 	binary.LittleEndian.PutUint16(hamt, headerAmount)
 
 	file = append(GenerateELFHeaders(*(*[4]byte)(entrypoint), *(*[2]byte)(hamt))[:], file...)
-
+	file = append(file, program.machinecode...)
+	file = append(file, program.variables...)
+	file = append(file, program.constants...)
+	file = append(file, program.strings...)
 	return &file
 }
