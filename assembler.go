@@ -54,7 +54,7 @@ func (a *Assembler) Assemble(filename string) error {
 
 	prog := compile(a.Token)
 	bytes := BuildELFFile(prog)
-	os.WriteFile("./testfile/output.go", *bytes, 0644)
+	os.WriteFile("./testfile/output.exe", *bytes, 0644)
 	return scanner.Err()
 }
 

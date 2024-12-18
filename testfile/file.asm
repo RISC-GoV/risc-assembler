@@ -8,7 +8,7 @@
     .word 420  # Read-only data
 
 .LC1:
-    .string "yo my n"
+    .string "Hello world"
   
 function:
     # Example function
