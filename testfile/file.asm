@@ -1,4 +1,3 @@
-
 .data
     dt: .word 50  # Example data
     de: .word 0           # Space for stored value

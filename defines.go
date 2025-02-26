@@ -19,6 +19,18 @@ const (
 	CS  // Compressed Store
 )
 
+// String method to return the name of OpCode instead of its numeric value
+func (op OpCode) String() string {
+	names := []string{
+		"R", "I", "S", "B", "U", "J",
+		"CI", "CSS", "CL", "CJ", "CR", "CB", "CIW", "CS",
+	}
+	if op >= 0 && int(op) < len(names) {
+		return names[op]
+	}
+	return "Unknown"
+}
+
 type OpPair struct {
 	opType OpCode
 	opByte []byte
@@ -42,26 +54,26 @@ var InstructionToOpType = map[string]OpPair{
 	"bltu": {B, []byte{0b1100011, 0x6}},
 	"bgeu": {B, []byte{0b1100011, 0x7}},
 
-	// I TYPE
-	"lb":     {I, []byte{0b0000011, 0x0}},
-	"lh":     {I, []byte{0b0000011, 0x1}},
-	"lw":     {I, []byte{0b0000011, 0x2}},
-	"lbu":    {I, []byte{0b0000011, 0x4}},
-	"lhu":    {I, []byte{0b0000011, 0x5}},
-	"sb":     {S, []byte{0b0100011, 0x0}},
-	"sh":     {S, []byte{0b0100011, 0x1}},
-	"sw":     {S, []byte{0b0100011, 0x2}},
-	"addi":   {I, []byte{0b0010011, 0x0}},
-	"slti":   {I, []byte{0b0010011, 0x2}},
-	"sltiu":  {I, []byte{0b0010011, 0x3}},
-	"xori":   {I, []byte{0b0010011, 0x4}},
-	"ori":    {I, []byte{0b0010011, 0x6}},
-	"andi":   {I, []byte{0b0010011, 0x7}},
+	// I TYPE: opbyte = opcode, func3, imm[11:5]
+	"lb":     {I, []byte{0b0000011, 0x0, 0x0}},
+	"lh":     {I, []byte{0b0000011, 0x1, 0x0}},
+	"lw":     {I, []byte{0b0000011, 0x2, 0x0}},
+	"lbu":    {I, []byte{0b0000011, 0x4, 0x0}},
+	"lhu":    {I, []byte{0b0000011, 0x5, 0x0}},
+	"sb":     {S, []byte{0b0100011, 0x0, 0x0}},
+	"sh":     {S, []byte{0b0100011, 0x1, 0x0}},
+	"sw":     {S, []byte{0b0100011, 0x2, 0x0}},
+	"addi":   {I, []byte{0b0010011, 0x0, 0x0}},
+	"slti":   {I, []byte{0b0010011, 0x2, 0x0}},
+	"sltiu":  {I, []byte{0b0010011, 0x3, 0x0}},
+	"xori":   {I, []byte{0b0010011, 0x4, 0x0}},
+	"ori":    {I, []byte{0b0010011, 0x6, 0x0}},
+	"andi":   {I, []byte{0b0010011, 0x7, 0x0}},
 	"slli":   {I, []byte{0b0010011, 0x1, 0x00}},
 	"srli":   {I, []byte{0b0010011, 0x5, 0x00}},
-	"srai":   {I, []byte{0b0010011, 0x5, 0x20}},
-	"ebreak": {I, []byte{0b0000000, 0x0, 0x0}}, // Adjust as needed
-	"ecall":  {I, []byte{0b0000000, 0x0, 0x1}}, // Adjust as needed
+	"srai":   {I, []byte{0b0010011, 0x5, 0x32}},
+	"ebreak": {I, []byte{0b1110011, 0x0, 0x1}}, // Adjust as needed
+	"ecall":  {I, []byte{0b1110011, 0x0, 0x0}}, // Adjust as needed
 	"call":   {I, []byte{}},                    // Adjust as needed
 
 	// R TYPE

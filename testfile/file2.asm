@@ -6,7 +6,6 @@
 .globl _start
 _start:
     # Load the address of the string into a register
-    la a0, .LC0
 
     # Print the string
     li a7, 4            # System call number for printing string

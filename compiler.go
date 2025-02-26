@@ -109,6 +109,8 @@ func (p *Program) recursiveCompilation(token *Token) {
 			}
 			varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 		}
+		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.constants)
+
 		p.constants = append(p.constants, varValue...)
 	// case constant:
 	// 	labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCount + variableCount + len(p.constants)
@@ -145,5 +147,6 @@ func (p *Program) handleString(token *Token) {
 	for _, ch := range token.children[1].value {
 		p.strings = append(p.strings, byte(ch))
 	}
+	labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.strings)
 	p.strings = append(p.strings, uint8(0))
 }

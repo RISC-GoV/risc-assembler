@@ -359,7 +359,6 @@ func LexUType(strArr []string, parent *Token) error {
 			if err != nil {
 
 				if strings.Contains(vals[0], "%") {
-
 					child.children = append(child.children, NewToken(modifier, cleanupStr(vals[0]), child))
 				} else {
 					return errors.New("I TYPE: Offset is not a number " + vals[0])
@@ -370,8 +369,10 @@ func LexUType(strArr []string, parent *Token) error {
 
 			if strings.Contains(vals[1], ".") {
 				child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-			} else {
+			} else if _, ok := matchTokenValid(cleanupStr(vals[1])); ok == nil {
 				child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			} else {
+				child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
 			}
 			parent.children = append(parent.children, child)
 		}

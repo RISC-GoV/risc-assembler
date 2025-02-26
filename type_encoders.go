@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
-	"unsafe"
 )
 
 func invertBits(integer uint32) uint32 {
@@ -167,14 +167,14 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 	if t.tokenType != instruction {
 		return 0, errors.New("expected instruction")
 	}
-	if t.value == "ecall" {
-		opcode := 0b1110011
-		func3 := 0
+	if t.value == "ecall" || t.value == "ebreak" {
+		opcode := int(t.opPair.opByte[0])
+		func3 := int(t.opPair.opByte[1])
 		rd := 0
 		rs1 := 0
-		imm := 0
+		func12 := int(t.opPair.opByte[2])
 
-		return TranslateIType(opcode, rd, func3, rs1, imm), nil
+		return TranslateIType(opcode, rd, func3, rs1, func12), nil
 	}
 	switch t.opPair.opType {
 	case R: // add x0, x0, x0
@@ -205,6 +205,7 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 			return 0, err
 		}
 		rs1, imm, err := p.parseComplexValue(t.children[1])
+		imm |= int(t.opPair.opByte[2])
 		if err != nil {
 			return 0, err
 		}
@@ -240,9 +241,12 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		imm, err := parseLabelOrLiteral(t.children[1])
+		tmp, imm, err := p.parseComplexValue(t.children[1])
 		if err != nil {
 			return 0, err
+		}
+		if imm == 0 {
+			imm = tmp
 		}
 		return TranslateUType(opcode, rd, imm), nil
 	case J: // jal x0, 0
@@ -257,21 +261,21 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		}
 		return TranslateJType(opcode, rd, imm), nil
 	case CI:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CI)") //todo
 	case CSS:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CSS)") //todo
 	case CL:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CL)") //todo
 	case CJ:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CJ)") //todo
 	case CR:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CR)") //todo
 	case CB:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CB)") //todo
 	case CIW:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CIW)") //todo
 	case CS:
-		return 0, errors.New("todo: compressed instructions") //todo
+		return 0, errors.New("todo: compressed instructions (CS)") //todo
 	default:
 		return 0, errors.New("unhandled default case")
 	}
@@ -282,7 +286,7 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 	case complexValue:
 		if tok.children[0].tokenType == literal {
 			if tok.children[1].tokenType == register {
-				reg, err := matchTokenValid(tok.children[1].value)
+				reg, err := parseLabelOrLiteral(tok.children[1])
 				if err != nil {
 					return 0, 0, err
 				}
@@ -304,7 +308,7 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 			}
 		} else { //modifier
 			if tok.children[1].tokenType == register {
-				reg, err := matchTokenValid(tok.children[1].value)
+				reg, err := parseLabelOrLiteral(tok.children[1])
 				if err != nil {
 					return 0, 0, err
 				}
@@ -316,6 +320,7 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 			} else { //constant
 				con, ok := labelPositions[tok.children[1].value]
 				if !ok {
+					fmt.Println(labelPositions)
 					return 0, 0, errors.New(tok.children[1].value + " not found")
 				}
 				con, err := handleModifier(tok.children[0].value, con)
@@ -343,12 +348,13 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 func handleModifier(mod string, val int) (int, error) {
 	switch mod {
 	case "%lo":
-		return int(uint8(val)), nil
+		return val ^ 0xFFF, nil //int(uint8(val)), nil
 	case "%hi":
-		for range unsafe.Sizeof(val) - 1 {
-			val >>= 8
-		}
-		return int(uint8(val)), nil
+		return (val ^ 0xFFF00000) >> 20, nil
+		//for range unsafe.Sizeof(val) - 1 {
+		//	val >>= 8
+		//}
+		//return int(uint8(val)), nil
 	}
 	return 0, errors.New("modifier not found")
 }
@@ -369,6 +375,12 @@ func parseLabelOrLiteral(tok *Token) (int, error) {
 			return 0, err
 		}
 		return imm, nil
+	case register:
+		imm, err := matchTokenValid(tok.value)
+		if err != nil {
+			return 0, err
+		}
+		return imm, nil
 	}
-	return 0, errors.New("wrong token type")
+	return 0, errors.New(fmt.Sprintf("wrong token type:  %+v", tok))
 }

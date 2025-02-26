@@ -6,44 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/type_encoders.go" beforeDir="false" afterPath="$PROJECT_DIR$/type_encoders.go" afterDir="false" />
-    </list>
-    <list id="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" name="Changes by louis" comment="">
       <change beforePath="$PROJECT_DIR$/assembler.go" beforeDir="false" afterPath="$PROJECT_DIR$/assembler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/compiler.go" beforeDir="false" afterPath="$PROJECT_DIR$/compiler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/defines.go" beforeDir="false" afterPath="$PROJECT_DIR$/defines.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testfile/file.asm" beforeDir="false" afterPath="$PROJECT_DIR$/testfile/file.asm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testfile/file2.asm" beforeDir="false" afterPath="$PROJECT_DIR$/testfile/file2.asm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/type_encoders.go" beforeDir="false" afterPath="$PROJECT_DIR$/type_encoders.go" afterDir="false" />
     </list>
+    <list id="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" name="Changes by louis" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="GOROOT" url="file://$USER_HOME$/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.23.2.windows-amd64" />
+  <component name="GOROOT" url="file://$PROJECT_DIR$/../../../../../../../Program Files/Go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="LineStatusTrackerManager">
-    <file path="$PROJECT_DIR$/type_encoders.go">
-      <ranges>
-        <range start1="5" end1="5" start2="5" end2="6" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="164" end1="165" start2="165" end2="166" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="169" end1="170" start2="170" end2="171" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="189" end1="190" start2="190" end2="191" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="196" end1="201" start2="197" end2="198" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="205" end1="206" start2="202" end2="203" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="212" end1="217" start2="209" end2="210" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="221" end1="222" start2="214" end2="215" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="224" end1="225" start2="217" end2="218" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="228" end1="233" start2="221" end2="223" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="237" end1="238" start2="227" end2="228" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="243" end1="244" start2="233" end2="234" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="248" end1="249" start2="238" end2="239" changelist="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" />
-        <range start1="254" end1="255" start2="244" end2="245" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-        <range start1="280" end1="280" start2="270" end2="366" changelist="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" />
-      </ranges>
-    </file>
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -54,27 +32,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Go Build.go build risc-assembler.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "git-widget-placeholder": "dirty",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/quent",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Go Build.go build risc-assembler.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dirty&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/quent&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.Mappings&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="go build risc-assembler" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="risc-assembler" />
@@ -94,8 +73,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-gosdk-33c477a475b1-e0158606a674-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-241.17890.21" />
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-GO-241.17890.21" />
+        <option value="bundled-gosdk-d297c17c1fbd-b87a2f8923ed-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-243.21565.208" />
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-GO-243.21565.208" />
       </set>
     </attachedChunks>
   </component>
