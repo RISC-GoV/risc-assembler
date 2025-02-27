@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -16,17 +15,12 @@ func (a *Assembler) Assemble(filename string) error {
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	//Preprocess File
+	var lines []string = Preprocess(file)
+
 	actualParent := a.Token
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		lineIndx := strings.Index(line, "#")
-		if lineIndx != -1 {
-			line = line[:lineIndx]
-		}
-
-		lineParts := strings.Split(line, " ") //     num1: .word 10        # First number
+	for _, line := range lines {
+		lineParts := strings.Split(line, " ")
 		lineParts = removeEmptyStrings(lineParts)
 
 		a.lineNumber++
@@ -42,8 +36,10 @@ func (a *Assembler) Assemble(filename string) error {
 	str := printTokenTree(a.Token, 0)
 	println("parsing saved to ./testfile/output.parser")
 	fmt.Println("blocks sizes")
-	fmt.Print("instructions: ")
+	fmt.Print("instructions (32bit/instr): ")
 	fmt.Println(instructionCount)
+	fmt.Print("instructions count: ")
+	fmt.Println(instructionCount / 32)
 	fmt.Print("variables: ")
 	fmt.Println(variableCount)
 	fmt.Print("constants: ")
@@ -55,7 +51,7 @@ func (a *Assembler) Assemble(filename string) error {
 	prog := compile(a.Token)
 	bytes := BuildELFFile(prog)
 	os.WriteFile("./testfile/output.exe", *bytes, 0644)
-	return scanner.Err()
+	return nil
 }
 
 func printTokenTree(t *Token, depth int) string {
@@ -132,7 +128,7 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 			parent.children = append(parent.children, NewToken(varValue, ln, parent))
 			return parent, nil
 		}
-		return parent, errors.New(". found but not matching")
+		return parent, errors.New(". found in line " + ln + " but not matching anything")
 	}
 
 	//either label or var
@@ -190,9 +186,9 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	parent.children = append(parent.children, ptk)
 	lineParts = lineParts[1:]
 	var err error
-
 	//increase instruction count to keep track of machineCode Size
 	instructionCount += 32
+
 	if ln == "ebreak" || ln == "ecall" || ln == "call" {
 		return parent, nil
 	}
@@ -284,10 +280,15 @@ func LexIType(strArr []string, parent *Token) error {
 				child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
 			}
 
-			if strings.Contains(vals[1], ".") {
+			_, err = strconv.Atoi(cleanupStr(vals[1][:len(vals[1])-1]))
+			if err == nil {
+				child.children = append(child.children, NewToken(literal, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			} else if strings.Contains(vals[1], ".") {
 				child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-			} else {
+			} else if _, ok := matchTokenValid(cleanupStr(vals[1][:len(vals[1])-1])); ok == nil {
 				child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			} else {
+				child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
 			}
 			parent.children = append(parent.children, child)
 		}
@@ -324,10 +325,15 @@ func LexSType(strArr []string, parent *Token) error {
 			child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
 		}
 
-		if strings.Contains(vals[1], ".") {
+		_, err = strconv.Atoi(cleanupStr(vals[1][:len(vals[1])-1]))
+		if err == nil {
+			child.children = append(child.children, NewToken(literal, cleanupStr(vals[1][:len(vals[1])-1]), child))
+		} else if strings.Contains(vals[1], ".") {
 			child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-		} else {
+		} else if _, ok := matchTokenValid(cleanupStr(vals[1][:len(vals[1])-1])); ok == nil {
 			child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
+		} else {
+			child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
 		}
 
 		parent.children = append(
@@ -367,9 +373,12 @@ func LexUType(strArr []string, parent *Token) error {
 				child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
 			}
 
-			if strings.Contains(vals[1], ".") {
+			_, err = strconv.Atoi(cleanupStr(vals[1][:len(vals[1])-1]))
+			if err == nil {
+				child.children = append(child.children, NewToken(literal, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			} else if strings.Contains(vals[1], ".") {
 				child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-			} else if _, ok := matchTokenValid(cleanupStr(vals[1])); ok == nil {
+			} else if _, ok := matchTokenValid(cleanupStr(vals[1][:len(vals[1])-1])); ok == nil {
 				child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
 			} else {
 				child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))

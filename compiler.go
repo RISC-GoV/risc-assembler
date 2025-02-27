@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -10,7 +11,12 @@ func compile(token *Token) Program {
 	prog := Program{}
 	prog.strings = append(prog.strings, uint8(00))
 	prog.recursiveCompilation(token)
+	fmt.Print("final instructions size (should match instructions): ")
+	fmt.Println(instructionCountCompilation)
 
+	for _, fun := range callbackInstructions {
+		fun()
+	}
 	if len(prog.strings) == 1 {
 		prog.strings = nil
 	}
@@ -29,12 +35,14 @@ func compile(token *Token) Program {
 }
 
 var (
-	labelPositions        map[string]int = make(map[string]int)
-	compilationEntryPoint string
-	instructionCount      int
-	variableCount         int
-	constantCount         int
-	stringCount           int = 8
+	labelPositions              map[string]int = make(map[string]int)
+	compilationEntryPoint       string
+	instructionCount            int
+	instructionCountCompilation int
+	variableCount               int
+	constantCount               int
+	stringCount                 int = 8
+	callbackInstructions        []func()
 )
 
 func (p *Program) recursiveCompilation(token *Token) {
@@ -108,26 +116,36 @@ func (p *Program) recursiveCompilation(token *Token) {
 				panic(err)
 			}
 			varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
+		default:
+			if token.children[0].tokenType == instruction {
+				labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.constants)
+				p.callDescendants(token)
+				goto endGoTo
+			}
 		}
-		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.constants)
+		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount
 
 		p.constants = append(p.constants, varValue...)
+
 	// case constant:
 	// 	labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCount + variableCount + len(p.constants)
 	// 	p.callDescendants(token)
 	case globalLabel:
-		labelPositions[strings.Replace(token.value, ":", "", 1)] = len(p.machinecode)
+		labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCount
 		fallthrough
 	case section:
 		fallthrough
 	case global:
 		p.callDescendants(token)
 	case instruction:
-		val, err := p.InstructionToBinary(token)
-		if err != nil {
-			panic(err)
-		}
-		p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
+		callbackInstructions = append(callbackInstructions, func() {
+			val, err := p.InstructionToBinary(token)
+			if err != nil {
+				panic(err)
+			}
+			p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
+		})
+		instructionCountCompilation += 32
 	case modifier:
 		if token.value == ".globl" {
 			compilationEntryPoint = token.children[0].value

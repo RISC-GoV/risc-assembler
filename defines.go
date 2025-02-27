@@ -36,6 +36,14 @@ type OpPair struct {
 	opByte []byte
 }
 
+var PseudoToInstruction = map[string]func([]string) []string{
+	"mv":  handleMV,
+	"j":   handleJ,
+	"jr":  handleJR,
+	"ble": handleBLE,
+	"li":  handleLI,
+}
+
 var InstructionToOpType = map[string]OpPair{
 
 	// U TYPE
@@ -43,8 +51,7 @@ var InstructionToOpType = map[string]OpPair{
 	"auipc": {U, []byte{0b0010111}},
 
 	// J TYPE
-	"jal":  {J, []byte{0b1101111}},
-	"jalr": {I, []byte{0b1100111, 0x0}},
+	"jal": {J, []byte{0b1101111}},
 
 	// B TYPE
 	"beq":  {B, []byte{0b1100011, 0x0}},
@@ -55,6 +62,7 @@ var InstructionToOpType = map[string]OpPair{
 	"bgeu": {B, []byte{0b1100011, 0x7}},
 
 	// I TYPE: opbyte = opcode, func3, imm[11:5]
+	"jalr":   {I, []byte{0b1100111, 0x0, 0x0}},
 	"lb":     {I, []byte{0b0000011, 0x0, 0x0}},
 	"lh":     {I, []byte{0b0000011, 0x1, 0x0}},
 	"lw":     {I, []byte{0b0000011, 0x2, 0x0}},
@@ -99,7 +107,6 @@ var InstructionToOpType = map[string]OpPair{
 	"c.bne": {CB, []byte{0b000001}},                                        // Compressed branch if not equal
 	"c.lw":  {CL, []byte{0b000001}},                                        // Compressed load word
 	"c.sw":  {CS, []byte{0b000001}},                                        // Compressed store word
-	"li":    {CI, []byte{0b000000, 0b000}},                                 // Compressed load immediate
 }
 
 func getTType(ti TokenType) string {

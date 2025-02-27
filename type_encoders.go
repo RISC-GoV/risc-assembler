@@ -205,10 +205,16 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 			return 0, err
 		}
 		rs1, imm, err := p.parseComplexValue(t.children[1])
-		imm |= int(t.opPair.opByte[2])
 		if err != nil {
 			return 0, err
 		}
+		if len(t.children) > 2 {
+			_, imm, err = p.parseComplexValue(t.children[2])
+			if err != nil {
+				return 0, err
+			}
+		}
+		imm |= int(t.opPair.opByte[2])
 		return TranslateIType(opcode, rd, func3, rs1, imm), nil
 	case S: //sw x0, 0(x0)
 		opcode := int(t.opPair.opByte[0])
@@ -230,9 +236,12 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 			return 0, err
 		}
 		rs2, err := t.children[1].getRegisterFromABI()
-		imm, err := parseLabelOrLiteral(t.children[2])
+		tmp, imm, err := p.parseComplexValue(t.children[1])
 		if err != nil {
 			return 0, err
+		}
+		if imm == 0 {
+			imm = tmp
 		}
 		return TranslateBType(opcode, func3, rs1, rs2, imm), nil
 	case U: // lui x0, 0
@@ -241,6 +250,7 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
+
 		tmp, imm, err := p.parseComplexValue(t.children[1])
 		if err != nil {
 			return 0, err
@@ -255,9 +265,12 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		imm, err := parseLabelOrLiteral(t.children[1])
+		tmp, imm, err := p.parseComplexValue(t.children[1])
 		if err != nil {
 			return 0, err
+		}
+		if imm == 0 {
+			imm = tmp
 		}
 		return TranslateJType(opcode, rd, imm), nil
 	case CI:
@@ -296,8 +309,8 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 				}
 				return reg, imm, nil
 			} else { //constant
-				con, ok := labelPositions[tok.children[1].value]
-				if !ok {
+				con, err := parseLabelOrLiteral(tok.children[1])
+				if err != nil {
 					return 0, 0, errors.New(tok.children[1].value + " not found")
 				}
 				imm, err := strconv.Atoi(tok.children[0].value)
@@ -306,35 +319,24 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 				}
 				return con, imm, nil
 			}
-		} else { //modifier
-			if tok.children[1].tokenType == register {
-				reg, err := parseLabelOrLiteral(tok.children[1])
-				if err != nil {
-					return 0, 0, err
-				}
-				reg, err = handleModifier(tok.children[0].value, reg)
-				if err != nil {
-					return 0, 0, err
-				}
-				return reg, 0, nil
-			} else { //constant
-				con, ok := labelPositions[tok.children[1].value]
-				if !ok {
-					fmt.Println(labelPositions)
-					return 0, 0, errors.New(tok.children[1].value + " not found")
-				}
-				con, err := handleModifier(tok.children[0].value, con)
-				if err != nil {
-					return 0, 0, err
-				}
-				return con, 0, nil
+		} else {
+			parsed, err := parseLabelOrLiteral(tok.children[1])
+			if err != nil {
+				return 0, 0, err
 			}
+			parsed, err = handleModifier(tok.children[0].value, parsed)
+			if err != nil {
+				return 0, 0, err
+			}
+			return parsed, 0, nil
 		}
 	case varLabel:
 		fallthrough
 	case constantValue:
 		fallthrough
 	case literal:
+		fallthrough
+	case register:
 		val, err := parseLabelOrLiteral(tok)
 		if err != nil {
 			return 0, 0, err
