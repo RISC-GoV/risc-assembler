@@ -5,12 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8657b2dc-a898-46b8-a1a2-a52ab6ffd555" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assembler.go" beforeDir="false" afterPath="$PROJECT_DIR$/assembler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/compiler.go" beforeDir="false" afterPath="$PROJECT_DIR$/compiler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/defines.go" beforeDir="false" afterPath="$PROJECT_DIR$/defines.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testfile/file.asm" beforeDir="false" afterPath="$PROJECT_DIR$/testfile/file.asm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testfile/file2.asm" beforeDir="false" afterPath="$PROJECT_DIR$/testfile/file2.asm" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/type_encoders.go" beforeDir="false" afterPath="$PROJECT_DIR$/type_encoders.go" afterDir="false" />
     </list>
     <list id="0eb6d74f-92e5-47e3-ae90-d06ff5110b1f" name="Changes by louis" comment="" />

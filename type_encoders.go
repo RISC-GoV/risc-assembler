@@ -350,7 +350,7 @@ func handleModifier(mod string, val int) (int, error) {
 	case "%lo":
 		return val ^ 0xFFF, nil //int(uint8(val)), nil
 	case "%hi":
-		return (val ^ 0xFFF00000) >> 20, nil
+		return (val ^ 0xFFFFF000) >> 20, nil
 		//for range unsafe.Sizeof(val) - 1 {
 		//	val >>= 8
 		//}
