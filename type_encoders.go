@@ -133,7 +133,12 @@ func TranslateJType(opcode int, rd int, imm int) uint32 {
 	imm19_12 := imm >> 12 & 0b11111111
 	imm11 := imm >> 11 & 0b1
 	imm10_1 := imm >> 1 & 0b1111111111
-	imm20 := imm >> 20 & 0b1
+	var imm20 int
+	if imm > 0 {
+		imm20 = 0
+	} else {
+		imm20 = 1
+	}
 
 	//shifts
 	res := uint32(imm20)
