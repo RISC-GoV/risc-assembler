@@ -25,3 +25,7 @@ go.work.sum
 .env
 testfile/output.parser
 testfile/comp.compiled
+
+# jetbrains
+.idea/
+.idea/*

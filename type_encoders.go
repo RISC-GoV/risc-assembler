@@ -6,18 +6,6 @@ import (
 	"strconv"
 )
 
-func invertBits(integer uint32) uint32 {
-	var result uint32 = 0
-
-	for range 32 {
-		result |= integer & 1
-		integer >>= 1
-		result <<= 1
-	}
-
-	return result
-}
-
 func TranslateRType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) uint32 {
 	//masks
 	opcode &= 0b1111111
@@ -40,7 +28,7 @@ func TranslateRType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) 
 	res <<= 7
 	res |= uint32(opcode)
 
-	return invertBits(res)
+	return res
 }
 
 func TranslateIType(opcode int, rd int, func3 int, rs1 int, imm int) uint32 {
@@ -62,7 +50,7 @@ func TranslateIType(opcode int, rd int, func3 int, rs1 int, imm int) uint32 {
 	res <<= 7
 	res |= uint32(opcode)
 
-	return invertBits(res)
+	return res
 }
 
 func TranslateSType(opcode int, func3 int, rs1 int, rs2 int, imm int) uint32 {
@@ -89,7 +77,7 @@ func TranslateSType(opcode int, func3 int, rs1 int, rs2 int, imm int) uint32 {
 	res <<= 7
 	res |= uint32(opcode)
 
-	return invertBits(res)
+	return res
 }
 
 func TranslateBType(opcode int, func3 int, rs1 int, rs2 int, imm int) uint32 {
@@ -120,7 +108,7 @@ func TranslateBType(opcode int, func3 int, rs1 int, rs2 int, imm int) uint32 {
 	res <<= 7
 	res |= uint32(opcode)
 
-	return invertBits(res)
+	return res
 }
 
 func TranslateUType(opcode int, rd int, imm int) uint32 {
@@ -136,7 +124,7 @@ func TranslateUType(opcode int, rd int, imm int) uint32 {
 	res <<= 7
 	res |= uint32(opcode)
 
-	return invertBits(res)
+	return res
 }
 func TranslateJType(opcode int, rd int, imm int) uint32 {
 	//masks
@@ -160,7 +148,7 @@ func TranslateJType(opcode int, rd int, imm int) uint32 {
 	res <<= 7
 	res |= uint32(opcode)
 
-	return invertBits(res)
+	return res
 }
 
 func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
