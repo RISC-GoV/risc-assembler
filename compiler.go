@@ -81,7 +81,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 		}
 
-		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.variables)
+		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.variables)
 
 		p.variables = append(p.variables, varValue...)
 	case constant:
@@ -118,20 +118,20 @@ func (p *Program) recursiveCompilation(token *Token) {
 			varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 		default:
 			if token.children[0].tokenType == instruction {
-				labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.constants)
+				labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.constants)
 				p.callDescendants(token)
 				goto endGoTo
 			}
 		}
-		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount
+		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation
 
 		p.constants = append(p.constants, varValue...)
 
 	// case constant:
-	// 	labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCount + variableCount + len(p.constants)
+	// 	labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCountCompilation + variableCount + len(p.constants)
 	// 	p.callDescendants(token)
 	case globalLabel:
-		labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCount
+		labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCountCompilation
 		fallthrough
 	case section:
 		fallthrough
@@ -145,7 +145,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			}
 			p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
 		})
-		instructionCountCompilation += 32
+		instructionCountCompilation += 4
 	case modifier:
 		if token.value == ".globl" {
 			compilationEntryPoint = token.children[0].value
@@ -165,6 +165,6 @@ func (p *Program) handleString(token *Token) {
 	for _, ch := range token.children[1].value {
 		p.strings = append(p.strings, byte(ch))
 	}
-	labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.strings)
+	labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.strings)
 	p.strings = append(p.strings, uint8(0))
 }

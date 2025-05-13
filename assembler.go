@@ -36,7 +36,7 @@ func (a *Assembler) Assemble(filename string) error {
 	str := printTokenTree(a.Token, 0)
 	println("parsing saved to ./testfile/output.parser")
 	fmt.Println("blocks sizes")
-	fmt.Print("instructions (32bit/instr): ")
+	fmt.Print("instructions (4bytes/instr): ")
 	fmt.Println(instructionCount)
 	fmt.Print("instructions count: ")
 	fmt.Println(instructionCount / 32)
@@ -193,7 +193,7 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	lineParts = lineParts[1:]
 	var err error
 	//increase instruction count to keep track of machineCode Size
-	instructionCount += 32
+	instructionCount += 4
 
 	if ln == "ebreak" || ln == "ecall" || ln == "call" {
 		return parent, nil

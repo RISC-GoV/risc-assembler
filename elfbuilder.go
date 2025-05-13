@@ -86,13 +86,11 @@ func BuildELFFile(program Program) *[]byte {
 		binary.LittleEndian.PutUint32(size, uint32(len(program.strings)))
 		file = append(file, GenerateSingleELFProgramHeader(0x04, *(*[4]byte)(offset), *(*[4]byte)(size))[:]...)
 	}
-	trueEntry := uint32(headerAmount*0x20) + 0x34 + binary.LittleEndian.Uint32(program.entrypoint[:])
-	entrypoint := make([]byte, 4)
-	binary.LittleEndian.PutUint32(entrypoint, trueEntry)
+
 	hamt := make([]byte, 2)
 	binary.LittleEndian.PutUint16(hamt, headerAmount)
 
-	file = append(GenerateELFHeaders(*(*[4]byte)(entrypoint), *(*[2]byte)(hamt))[:], file...)
+	file = append(GenerateELFHeaders(program.entrypoint, *(*[2]byte)(hamt))[:], file...)
 	file = append(file, program.machinecode...)
 	file = append(file, program.variables...)
 	file = append(file, program.constants...)
