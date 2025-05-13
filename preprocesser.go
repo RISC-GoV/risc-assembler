@@ -43,6 +43,9 @@ func Preprocess(file *os.File) []string {
 
 func handleMV(lineParts []string) []string {
 	// split by, Then add instruction as last element
+	if len(lineParts) > 2 {
+		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	}
 	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0])
 	return []string{"addi " + lineParts[0] + "," + lineParts[1] + ",0"}
 }
@@ -57,12 +60,18 @@ func handleJR(lineParts []string) []string {
 
 func handleBLE(lineParts []string) []string {
 	// split by, Then add instruction as last element
+	if len(lineParts) > 2 {
+		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	}
 	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0])
 	return []string{"bge " + lineParts[1] + "," + lineParts[0] + "," + lineParts[2]}
 }
 
 func handleLI(lineParts []string) []string {
 	var result []string = make([]string, 0)
+	if len(lineParts) > 2 {
+		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	}
 	// split by, Then add instruction as last element
 	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0])
 	res, err := strconv.Atoi(lineParts[len(lineParts)-2])

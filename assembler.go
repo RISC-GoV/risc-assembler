@@ -112,15 +112,17 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				return tk, nil
 			} else {
 				// constant variable defined without label
+				var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[1:], " "))
 
 				varS, isN := getVarSize(lineParts[0])
 				if isN {
 					constantCount += varS
 				} else {
-					stringCount += len(strings.TrimSpace(strings.Join(lineParts[1:], " ")))*8 - 8
+					finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
+					stringCount += len(finalLinePart2)*8 - 8
 				}
 				//add var size and value
-				parent.children = []*Token{NewToken(varSize, cleanupStr(lineParts[0]), parent), NewToken(varValue, cleanupStr(strings.Join(lineParts[1:], " ")), parent)}
+				parent.children = []*Token{NewToken(varSize, cleanupStr(lineParts[0]), parent), NewToken(varValue, finalLinePart2, parent)}
 				return parent, nil
 			}
 		} else {
@@ -147,31 +149,35 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 			} else {
 				//vars
 				//increase instruction count to keep track of variable Size
+				var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[2:], " "))
 				varS, isN := getVarSize(lineParts[1])
 				if isN {
 					variableCount += varS
 				} else {
-					stringCount += len(strings.TrimSpace(strings.Join(lineParts[2:], " ")))*8 - 8
+					finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
+					stringCount += len(finalLinePart2)*8 - 8
 				}
 				tk := NewToken(varLabel, ln, parent)
 				//add var size and value
-				tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, cleanupStr(strings.Join(lineParts[2:], " ")), tk)}
+				tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, finalLinePart2, tk)}
 				parent.children = append(parent.children, tk)
 				return parent, nil
 			}
 		} else if parent.tokenType == section || parent.tokenType == constant {
 			//vars
 			//increase instruction count to keep track of variable Size
+			var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[2:], " "))
 			varS, isN := getVarSize(lineParts[1])
 			if isN {
 				variableCount += varS
 			} else {
-				stringCount += len(strings.TrimSpace(strings.Join(lineParts[2:], " ")))*8 - 8
+				finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
+				stringCount += len(finalLinePart2)*8 - 8
 			}
 
 			tk := NewToken(varLabel, ln, parent)
 			//add var size and value
-			tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, cleanupStr(strings.Join(lineParts[2:], " ")), tk)}
+			tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, finalLinePart2, tk)}
 			parent.children = append(parent.children, tk)
 			return parent, nil
 		}
