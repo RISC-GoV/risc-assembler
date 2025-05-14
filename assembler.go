@@ -92,6 +92,16 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	if ln[0] == '.' {
 		// todo handle either size of var (.word) or section (.text) or constant (.LC0:)
 		if parent.tokenType == global || parent.tokenType == section || parent.tokenType == globalLabel || parent.tokenType == constant {
+			if ln == ".section" {
+				if len(lineParts) == 2 {
+					// section
+					tk := NewToken(section, lineParts[1], a.Token)
+					a.Token.children = append(a.Token.children, tk)
+					return tk, nil
+				} else {
+					return parent, nil
+				}
+			}
 			if parent.value == ".text" {
 				if ln == ".globl" {
 					//symbol main entry point

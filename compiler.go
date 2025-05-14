@@ -148,7 +148,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			},
 				instructionCountCompilation})
 		instructionCountCompilation += 4
-	case modifier:
+	case entrypoint:
 		if token.value == ".globl" {
 			compilationEntryPoint = token.children[0].value
 		}
