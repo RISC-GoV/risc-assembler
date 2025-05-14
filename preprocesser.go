@@ -86,3 +86,18 @@ func handleLI(lineParts []string) []string {
 	}
 	return result
 }
+
+func handleLA(lineParts []string) []string {
+	if len(lineParts) > 2 {
+		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	}
+	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0]) // [rd, symbol, "la"]
+
+	rd := strings.TrimSpace(lineParts[0])
+	symbol := strings.TrimSpace(lineParts[1])
+
+	return []string{
+		"auipc " + rd + ",%pcrel_hi(" + symbol + ")",
+		"addi " + rd + "," + rd + ",%pcrel_lo(" + symbol + ")",
+	}
+}

@@ -322,13 +322,15 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 			if err != nil {
 				return 0, 0, err
 			}
-			parsed, err = handleModifier(tok.children[0].value, parsed)
+			parsed, err = handleModifier(tok.children[0].value, parsed, relativeInstrCount)
 			if err != nil {
 				return 0, 0, err
 			}
 			return parsed, 0, nil
 		}
 	case varLabel:
+		fallthrough
+	case varValue:
 		fallthrough
 	case constantValue:
 		fallthrough
@@ -345,16 +347,17 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 	return 0, 0, nil
 }
 
-func handleModifier(mod string, val int) (int, error) {
+func handleModifier(mod string, val int, relativeInstrCount int) (int, error) {
 	switch mod {
 	case "%lo":
 		return val ^ 0xFFF, nil //int(uint8(val)), nil
 	case "%hi":
 		return (val ^ 0xFFFFF000) >> 20, nil
-		//for range unsafe.Sizeof(val) - 1 {
-		//	val >>= 8
-		//}
-		//return int(uint8(val)), nil
+	case "%pcrel_lo":
+		return (val - relativeInstrCount) ^ 0xFFF, nil //int(uint8(val)), nil
+	case "%pcrel_hi":
+		return ((val - relativeInstrCount) ^ 0xFFFFF000) >> 20, nil
+
 	}
 	return 0, errors.New("modifier not found")
 }
@@ -362,6 +365,8 @@ func handleModifier(mod string, val int) (int, error) {
 func parseLabelOrLiteral(tok *Token, instructionRelativePos int) (int, error) {
 	switch tok.tokenType {
 	case varLabel:
+		fallthrough
+	case varValue:
 		fallthrough
 	case constantValue:
 		imm, ok := labelPositions[tok.value]

@@ -42,6 +42,7 @@ var PseudoToInstruction = map[string]func([]string) []string{
 	"jr":  handleJR,
 	"ble": handleBLE,
 	"li":  handleLI,
+	"la":  handleLA,
 }
 
 var InstructionToOpType = map[string]OpPair{

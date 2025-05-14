@@ -280,7 +280,7 @@ func LexIType(strArr []string, parent *Token) error {
 		var vals = strings.Split(strArr[len(strArr)-1], "(")
 
 		if len(vals) != 2 {
-			parent.children = append(parent.children, NewToken(varLabel, vals[0], parent))
+			parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
 		} else {
 			child := NewToken(complexValue, strArr[len(strArr)-1], parent)
 			_, err = strconv.Atoi(cleanupStr(vals[0]))
@@ -296,15 +296,16 @@ func LexIType(strArr []string, parent *Token) error {
 				child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
 			}
 
-			_, err = strconv.Atoi(cleanupStr(vals[1][:len(vals[1])-1]))
+			cleanedStr := cleanupStr(vals[1][:len(vals[1])-1])
+			_, err = strconv.Atoi(cleanedStr)
 			if err == nil {
-				child.children = append(child.children, NewToken(literal, cleanupStr(vals[1][:len(vals[1])-1]), child))
+				child.children = append(child.children, NewToken(literal, cleanedStr, child))
 			} else if strings.Contains(vals[1], ".") {
-				child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-			} else if _, ok := matchTokenValid(cleanupStr(vals[1][:len(vals[1])-1])); ok == nil {
-				child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
+				child.children = append(child.children, NewToken(constantValue, cleanedStr, child))
+			} else if _, ok := matchTokenValid(cleanedStr); ok == nil {
+				child.children = append(child.children, NewToken(register, cleanedStr, child))
 			} else {
-				child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
+				child.children = append(child.children, NewToken(varValue, cleanedStr, child))
 			}
 			parent.children = append(parent.children, child)
 		}
@@ -325,7 +326,7 @@ func LexSType(strArr []string, parent *Token) error {
 	var vals = strings.Split(strArr[len(strArr)-1], "(")
 
 	if len(vals) != 2 {
-		parent.children = append(parent.children, NewToken(varLabel, vals[0], parent))
+		parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
 	} else {
 		child := NewToken(complexValue, strArr[len(strArr)-1], parent)
 		_, err = strconv.Atoi(cleanupStr(vals[0]))
@@ -341,15 +342,16 @@ func LexSType(strArr []string, parent *Token) error {
 			child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
 		}
 
-		_, err = strconv.Atoi(cleanupStr(vals[1][:len(vals[1])-1]))
+		cleanupStr := cleanupStr(vals[1][:len(vals[1])-1])
+		_, err = strconv.Atoi(cleanupStr)
 		if err == nil {
-			child.children = append(child.children, NewToken(literal, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			child.children = append(child.children, NewToken(literal, cleanupStr, child))
 		} else if strings.Contains(vals[1], ".") {
-			child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-		} else if _, ok := matchTokenValid(cleanupStr(vals[1][:len(vals[1])-1])); ok == nil {
-			child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			child.children = append(child.children, NewToken(constantValue, cleanupStr, child))
+		} else if _, ok := matchTokenValid(cleanupStr); ok == nil {
+			child.children = append(child.children, NewToken(register, cleanupStr, child))
 		} else {
-			child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
+			child.children = append(child.children, NewToken(varValue, cleanupStr, child))
 		}
 
 		parent.children = append(
@@ -374,7 +376,7 @@ func LexUType(strArr []string, parent *Token) error {
 		var vals = strings.Split(strArr[len(strArr)-1], "(")
 
 		if len(vals) != 2 {
-			parent.children = append(parent.children, NewToken(varLabel, vals[0], parent))
+			parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
 		} else {
 			child := NewToken(complexValue, strArr[len(strArr)-1], parent)
 			_, err = strconv.Atoi(cleanupStr(vals[0]))
@@ -389,15 +391,16 @@ func LexUType(strArr []string, parent *Token) error {
 				child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
 			}
 
-			_, err = strconv.Atoi(cleanupStr(vals[1][:len(vals[1])-1]))
+			cleanupStr := cleanupStr(vals[1][:len(vals[1])-1])
+			_, err = strconv.Atoi(cleanupStr)
 			if err == nil {
-				child.children = append(child.children, NewToken(literal, cleanupStr(vals[1][:len(vals[1])-1]), child))
+				child.children = append(child.children, NewToken(literal, cleanupStr, child))
 			} else if strings.Contains(vals[1], ".") {
-				child.children = append(child.children, NewToken(constantValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
-			} else if _, ok := matchTokenValid(cleanupStr(vals[1][:len(vals[1])-1])); ok == nil {
-				child.children = append(child.children, NewToken(register, cleanupStr(vals[1][:len(vals[1])-1]), child))
+				child.children = append(child.children, NewToken(constantValue, cleanupStr, child))
+			} else if _, ok := matchTokenValid(cleanupStr); ok == nil {
+				child.children = append(child.children, NewToken(register, cleanupStr, child))
 			} else {
-				child.children = append(child.children, NewToken(varValue, cleanupStr(vals[1][:len(vals[1])-1]), child))
+				child.children = append(child.children, NewToken(varValue, cleanupStr, child))
 			}
 			parent.children = append(parent.children, child)
 		}
