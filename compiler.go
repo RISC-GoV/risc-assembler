@@ -15,7 +15,7 @@ func compile(token *Token) Program {
 	fmt.Println(instructionCountCompilation)
 
 	for _, fun := range callbackInstructions {
-		fun()
+		fun[0].(func(int))(fun[1].(int))
 	}
 	if len(prog.strings) == 1 {
 		prog.strings = nil
@@ -42,7 +42,7 @@ var (
 	variableCount               int
 	constantCount               int
 	stringCount                 int = 8
-	callbackInstructions        []func()
+	callbackInstructions        [][2]interface{}
 )
 
 func (p *Program) recursiveCompilation(token *Token) {
@@ -138,13 +138,15 @@ func (p *Program) recursiveCompilation(token *Token) {
 	case global:
 		p.callDescendants(token)
 	case instruction:
-		callbackInstructions = append(callbackInstructions, func() {
-			val, err := p.InstructionToBinary(token)
-			if err != nil {
-				panic(err)
-			}
-			p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
-		})
+		callbackInstructions = append(callbackInstructions,
+			[2]interface{}{func(relativeInstrCount int) {
+				val, err := p.InstructionToBinary(token, relativeInstrCount)
+				if err != nil {
+					panic(err)
+				}
+				p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
+			},
+				instructionCountCompilation})
 		instructionCountCompilation += 4
 	case modifier:
 		if token.value == ".globl" {

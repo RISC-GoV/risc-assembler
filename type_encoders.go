@@ -156,7 +156,7 @@ func TranslateJType(opcode int, rd int, imm int) uint32 {
 	return res
 }
 
-func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
+func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32, error) {
 	if t.tokenType != instruction {
 		return 0, errors.New("expected instruction")
 	}
@@ -197,12 +197,17 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		rs1, imm, err := p.parseComplexValue(t.children[1])
+		rs1, imm, err := p.parseComplexValue(t.children[1], relativeInstrCount)
 		if err != nil {
 			return 0, err
 		}
 		if len(t.children) > 2 {
-			_, imm, err = p.parseComplexValue(t.children[2])
+			//if two children and rs1 = 0 then we can guess that previous one was a register (addi X5, X5, 5)
+			if rs1 == 0 {
+				rs1 = imm
+			}
+
+			_, imm, err = p.parseComplexValue(t.children[2], relativeInstrCount)
 			if err != nil {
 				return 0, err
 			}
@@ -216,7 +221,7 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		rs2, imm, err := p.parseComplexValue(t.children[1])
+		rs2, imm, err := p.parseComplexValue(t.children[1], relativeInstrCount)
 		if err != nil {
 			return 0, err
 		}
@@ -229,7 +234,7 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 			return 0, err
 		}
 		rs2, err := t.children[1].getRegisterFromABI()
-		tmp, imm, err := p.parseComplexValue(t.children[1])
+		tmp, imm, err := p.parseComplexValue(t.children[2], relativeInstrCount)
 		if err != nil {
 			return 0, err
 		}
@@ -244,7 +249,7 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 			return 0, err
 		}
 
-		tmp, imm, err := p.parseComplexValue(t.children[1])
+		tmp, imm, err := p.parseComplexValue(t.children[1], relativeInstrCount)
 		if err != nil {
 			return 0, err
 		}
@@ -258,7 +263,7 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		tmp, imm, err := p.parseComplexValue(t.children[1])
+		tmp, imm, err := p.parseComplexValue(t.children[1], relativeInstrCount)
 		if err != nil {
 			return 0, err
 		}
@@ -287,12 +292,12 @@ func (p *Program) InstructionToBinary(t *Token) (uint32, error) {
 	}
 }
 
-func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
+func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, int, error) {
 	switch tok.tokenType { //0(x0) OU 0(.LC1)
 	case complexValue:
 		if tok.children[0].tokenType == literal {
 			if tok.children[1].tokenType == register {
-				reg, err := parseLabelOrLiteral(tok.children[1])
+				reg, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 				if err != nil {
 					return 0, 0, err
 				}
@@ -302,7 +307,7 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 				}
 				return reg, imm, nil
 			} else { //constant
-				con, err := parseLabelOrLiteral(tok.children[1])
+				con, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 				if err != nil {
 					return 0, 0, errors.New(tok.children[1].value + " not found")
 				}
@@ -313,7 +318,7 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 				return con, imm, nil
 			}
 		} else {
-			parsed, err := parseLabelOrLiteral(tok.children[1])
+			parsed, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 			if err != nil {
 				return 0, 0, err
 			}
@@ -330,7 +335,7 @@ func (p *Program) parseComplexValue(tok *Token) (int, int, error) {
 	case literal:
 		fallthrough
 	case register:
-		val, err := parseLabelOrLiteral(tok)
+		val, err := parseLabelOrLiteral(tok, relativeInstrCount)
 		if err != nil {
 			return 0, 0, err
 		}
@@ -354,7 +359,7 @@ func handleModifier(mod string, val int) (int, error) {
 	return 0, errors.New("modifier not found")
 }
 
-func parseLabelOrLiteral(tok *Token) (int, error) {
+func parseLabelOrLiteral(tok *Token, instructionRelativePos int) (int, error) {
 	switch tok.tokenType {
 	case varLabel:
 		fallthrough
@@ -363,6 +368,7 @@ func parseLabelOrLiteral(tok *Token) (int, error) {
 		if !ok {
 			return 0, errors.New(tok.value + " not found")
 		}
+		imm -= instructionRelativePos
 		return imm, nil
 	case literal:
 		imm, err := strconv.Atoi(tok.value)
