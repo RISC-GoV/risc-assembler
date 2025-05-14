@@ -30,12 +30,12 @@ func GenerateELFHeaders(e_entry [4]byte, e_phnum [2]byte) *[0x34]byte {
 	return &elfHeader
 }
 
-func GenerateSingleELFProgramHeader(htype byte, offset [4]byte, size [4]byte) *[0x20]byte {
+func GenerateSingleELFProgramHeader(htype byte, offset [4]byte, size [4]byte, memoffset [4]byte) *[0x20]byte {
 	var programHeader [0x20]byte
 	programHeader[0x00] = 0x01 // PT_LOAD
 	for i := 0; i < 4; i++ {
-		programHeader[i+0x04] = offset[i] // File offset
-		programHeader[i+0x08] = offset[i] // Memory offset
+		programHeader[i+0x04] = offset[i]    // File offset
+		programHeader[i+0x08] = memoffset[i] // Memory offset
 	}
 	for i := 0; i < 4; i++ {
 		programHeader[i+0x10] = size[i] // Size
@@ -59,32 +59,42 @@ func BuildELFFile(program Program) *[]byte {
 	}
 
 	finalOffset := uint32(headerAmount*0x20) + 0x34
+	memoffsetamt := 0
 	offset := make([]byte, 4)
+	memoffset := make([]byte, 4)
 	size := make([]byte, 4)
 	binary.LittleEndian.PutUint32(offset, finalOffset)
 	binary.LittleEndian.PutUint32(size, uint32(len(program.machinecode)))
+	binary.LittleEndian.PutUint32(memoffset, uint32(memoffsetamt))
 
-	file := GenerateSingleELFProgramHeader(0x05, *(*[4]byte)(offset), *(*[4]byte)(size))[:]
+	file := GenerateSingleELFProgramHeader(0x05, *(*[4]byte)(offset), *(*[4]byte)(size), *(*[4]byte)(memoffset))[:]
 	finalOffset += uint32(len(program.machinecode))
+	memoffsetamt += len(program.machinecode)
 
 	if program.variables != nil {
 		binary.LittleEndian.PutUint32(offset, finalOffset)
 		binary.LittleEndian.PutUint32(size, uint32(len(program.variables)))
-		file = append(file, GenerateSingleELFProgramHeader(0x06, *(*[4]byte)(offset), *(*[4]byte)(size))[:]...)
+		binary.LittleEndian.PutUint32(memoffset, uint32(memoffsetamt))
+		file = append(file, GenerateSingleELFProgramHeader(0x06, *(*[4]byte)(offset), *(*[4]byte)(size), *(*[4]byte)(memoffset))[:]...)
 		finalOffset += uint32(len(program.variables))
+		memoffsetamt += len(program.variables)
 	}
 
 	if program.constants != nil {
 		binary.LittleEndian.PutUint32(offset, finalOffset)
 		binary.LittleEndian.PutUint32(size, uint32(len(program.constants)))
-		file = append(file, GenerateSingleELFProgramHeader(0x04, *(*[4]byte)(offset), *(*[4]byte)(size))[:]...)
+		binary.LittleEndian.PutUint32(memoffset, uint32(memoffsetamt))
+		file = append(file, GenerateSingleELFProgramHeader(0x04, *(*[4]byte)(offset), *(*[4]byte)(size), *(*[4]byte)(memoffset))[:]...)
 		finalOffset += uint32(len(program.constants))
+		memoffsetamt += len(program.constants)
 	}
 
 	if program.strings != nil {
 		binary.LittleEndian.PutUint32(offset, finalOffset)
 		binary.LittleEndian.PutUint32(size, uint32(len(program.strings)))
-		file = append(file, GenerateSingleELFProgramHeader(0x04, *(*[4]byte)(offset), *(*[4]byte)(size))[:]...)
+		binary.LittleEndian.PutUint32(memoffset, uint32(memoffsetamt))
+		file = append(file, GenerateSingleELFProgramHeader(0x04, *(*[4]byte)(offset), *(*[4]byte)(size), *(*[4]byte)(memoffset))[:]...)
+
 	}
 
 	hamt := make([]byte, 2)
