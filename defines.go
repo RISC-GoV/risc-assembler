@@ -79,7 +79,7 @@ var InstructionToOpType = map[string]OpPair{
 	"andi":   {I, []byte{0b0010011, 0x7, 0x0}},
 	"slli":   {I, []byte{0b0010011, 0x1, 0x00}},
 	"srli":   {I, []byte{0b0010011, 0x5, 0x00}},
-	"srai":   {I, []byte{0b0010011, 0x5, 0x32}},
+	"srai":   {I, []byte{0b0010011, 0x5, 0x20}},
 	"ebreak": {I, []byte{0b1110011, 0x0, 0x1}}, // Adjust as needed
 	"ecall":  {I, []byte{0b1110011, 0x0, 0x0}}, // Adjust as needed
 	"call":   {I, []byte{}},                    // Adjust as needed

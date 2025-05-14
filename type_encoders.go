@@ -212,7 +212,7 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 				return 0, err
 			}
 		}
-		imm |= int(t.opPair.opByte[2])
+		imm |= (int(t.opPair.opByte[2]) << 5)
 		return TranslateIType(opcode, rd, func3, rs1, imm), nil
 	case S: //sw x0, 0(x0)
 		opcode := int(t.opPair.opByte[0])
