@@ -1,6 +1,6 @@
 .data
     dt: .word 50  # Example data
-    de: .word 0           # Space for stored value
+    de: .word 0   # Space for stored value
 
 
 .LC0:
@@ -39,9 +39,9 @@ continue:
 .globl _start
 _start:
     # Register initialization
-    addi x0, 0          # x0 is hardwired to zero
-    addi x1, 42         # x1 = 42
-    addi x2, 100        # x2 = 100
+    li x0, 0                # x0 is hardwired to zero
+    li x1, 42               # x1 = 42
+    addi x2, x0, 100        # x2 = 100
     
     # Arithmetic operations
     add x3, x1, x2    # x3 = x1 + x2
@@ -62,7 +62,7 @@ _start:
     sw x1, 4(x11)     # Store word
     
     # Branches
-    beq x1, x2, skip  # Branch if equal
+    beq x1, x2, skip     # Branch if equal
     bne x1, x2, continue # Branch if not equal
     blt x1, x2, continue # Branch if less than
     bge x2, x1, continue # Branch if greater or equal

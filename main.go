@@ -17,12 +17,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-func copybytes(source []byte, dest []byte, amt int, sourceoffset int, destoffset int) {
-	for i := 0; i < amt; i++ {
-		dest[destoffset+i] = source[sourceoffset+i]
-	}
-}
-func GenerateELFSectionHeaders() []byte {
-	return []byte{}
-}

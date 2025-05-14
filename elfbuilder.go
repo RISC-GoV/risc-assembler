@@ -71,7 +71,7 @@ func BuildELFFile(program Program) *[]byte {
 		binary.LittleEndian.PutUint32(offset, finalOffset)
 		binary.LittleEndian.PutUint32(size, uint32(len(program.variables)))
 		file = append(file, GenerateSingleELFProgramHeader(0x06, *(*[4]byte)(offset), *(*[4]byte)(size))[:]...)
-		finalOffset += uint32(len(program.constants))
+		finalOffset += uint32(len(program.variables))
 	}
 
 	if program.constants != nil {
