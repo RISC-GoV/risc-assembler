@@ -205,7 +205,7 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	//increase instruction count to keep track of machineCode Size
 	instructionCount += 4
 
-	if ln == "ebreak" || ln == "ecall" || ln == "call" {
+	if ln == "ebreak" || ln == "ecall" {
 		return parent, nil
 	}
 	var newArr []string

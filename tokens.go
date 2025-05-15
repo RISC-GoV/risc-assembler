@@ -11,7 +11,6 @@ type TokenType int
 const (
 	global = iota
 	section
-	data
 	symbol
 	localLabel
 	globalLabel
@@ -20,17 +19,12 @@ const (
 	instruction
 	register
 	literal
-	sign
 	entrypoint
 	constant
 	constantValue
 	varValue
 	varLabel
 	varSize
-	constLabel
-	comment
-	ret
-	none
 )
 
 type Token struct {

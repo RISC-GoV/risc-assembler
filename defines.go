@@ -83,7 +83,6 @@ var InstructionToOpType = map[string]OpPair{
 	"srai":   {I, []byte{0b0010011, 0x5, 0x20}},
 	"ebreak": {I, []byte{0b1110011, 0x0, 0x1}}, // Adjust as needed
 	"ecall":  {I, []byte{0b1110011, 0x0, 0x0}}, // Adjust as needed
-	"call":   {I, []byte{}},                    // Adjust as needed
 
 	// R TYPE
 	"add":  {R, []byte{0b0110011, 0x0, 0x00}},
@@ -116,10 +115,6 @@ func getTType(ti TokenType) string {
 		return "global"
 	case section:
 		return "section"
-	case data:
-		return "data"
-	case sign:
-		return "sign"
 	case modifier:
 		return "modifier"
 	case symbol:
@@ -148,14 +143,6 @@ func getTType(ti TokenType) string {
 		return "varLabel"
 	case varSize:
 		return "varSize"
-	case constLabel:
-		return "constLabel"
-	case comment:
-		return "comment"
-	case ret:
-		return "ret"
-	case none:
-		return "none"
 	}
 	return ""
 }
