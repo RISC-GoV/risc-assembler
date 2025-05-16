@@ -326,7 +326,7 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 			if err != nil {
 				return 0, 0, err
 			}
-			return parsed, 0, nil
+			return 0, parsed, nil
 		}
 	case varLabel:
 		fallthrough
@@ -350,14 +350,13 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 func handleModifier(mod string, val int, relativeInstrCount int) (int, error) {
 	switch mod {
 	case "%lo":
-		return val ^ 0xFFF, nil //int(uint8(val)), nil
+		return (val + relativeInstrCount) & 0xFFF, nil //int(uint8(val)), nil
 	case "%hi":
-		return (val ^ 0xFFFFF000) >> 20, nil
+		return ((val + relativeInstrCount) >> 12) & 0xFFFFF, nil
 	case "%pcrel_lo":
-		return (val - relativeInstrCount) ^ 0xFFF, nil //int(uint8(val)), nil
+		return val & 0xFFF, nil //int(uint8(val)), nil
 	case "%pcrel_hi":
-		return ((val - relativeInstrCount) ^ 0xFFFFF000) >> 20, nil
-
+		return (val >> 12) & 0xFFFFF, nil
 	}
 	return 0, errors.New("modifier not found")
 }

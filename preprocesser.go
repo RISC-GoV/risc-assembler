@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -42,62 +43,84 @@ func Preprocess(file *os.File) []string {
 }
 
 func handleMV(lineParts []string) []string {
-	// split by, Then add instruction as last element
-	if len(lineParts) > 2 {
-		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	if len(lineParts) < 3 {
+		return []string{"invalid mv instruction"}
 	}
-	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0])
-	return []string{"addi " + lineParts[0] + "," + lineParts[1] + ",0"}
+
+	rd := strings.TrimSpace(lineParts[1])
+	rs := strings.TrimSpace(lineParts[2])
+
+	return []string{fmt.Sprintf("addi %s, %s, 0", rd, rs)}
 }
 
 func handleJ(lineParts []string) []string {
-	return []string{"jal x0," + lineParts[1]}
+	if len(lineParts) < 2 {
+		return []string{"invalid j instruction"}
+	}
+
+	target := strings.TrimSpace(lineParts[1])
+	return []string{fmt.Sprintf("jal x0, %s", target)}
 }
 
 func handleJR(lineParts []string) []string {
-	return []string{"jalr x0," + lineParts[1] + ",0"}
+	if len(lineParts) < 2 {
+		return []string{"invalid jr instruction"}
+	}
+
+	rs := strings.TrimSpace(lineParts[1])
+	return []string{fmt.Sprintf("jalr x0, %s, 0", rs)}
 }
 
 func handleBLE(lineParts []string) []string {
-	// split by, Then add instruction as last element
-	if len(lineParts) > 2 {
-		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	if len(lineParts) < 4 {
+		return []string{"invalid ble instruction"}
 	}
-	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0])
-	return []string{"bge " + lineParts[1] + "," + lineParts[0] + "," + lineParts[2]}
+
+	rs1 := strings.TrimSpace(lineParts[1])
+	rs2 := strings.TrimSpace(lineParts[2])
+	label := strings.TrimSpace(lineParts[3])
+
+	// ble is equivalent to bge with swapped operands
+	return []string{fmt.Sprintf("bge %s, %s, %s", rs2, rs1, label)}
 }
 
 func handleLI(lineParts []string) []string {
-	var result []string = make([]string, 0)
-	if len(lineParts) > 2 {
-		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	if len(lineParts) < 3 {
+		return []string{"invalid li instruction"}
 	}
-	// split by, Then add instruction as last element
-	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0])
-	res, err := strconv.Atoi(lineParts[len(lineParts)-2])
+
+	rd := strings.TrimSpace(lineParts[1])
+	imm := strings.TrimSpace(lineParts[2])
+
+	val, err := strconv.Atoi(imm)
 	if err != nil {
-		panic(err)
+		//imm may be a register
+		return []string{
+			fmt.Sprintf("lui %s, %%hi(%s)", rd, imm),
+			fmt.Sprintf("addi %s, %s, %%lo(%s)", rd, rd, imm),
+		}
 	}
-	if res >= -2048 && res < 2048 {
-		result = append(result, "addi "+lineParts[0]+",x0,"+lineParts[1])
-	} else {
-		result = append(result, "lui "+lineParts[0]+",%hi("+lineParts[1]+")")
-		result = append(result, "addi "+lineParts[0]+","+lineParts[0]+",%lo("+lineParts[1]+")")
+
+	if val >= -2048 && val < 2048 {
+		return []string{fmt.Sprintf("addi %s, x0, %s", rd, imm)}
 	}
-	return result
+
+	return []string{
+		fmt.Sprintf("lui %s, %%hi(%s)", rd, imm),
+		fmt.Sprintf("addi %s, %s, %%lo(%s)", rd, rd, imm),
+	}
 }
 
 func handleLA(lineParts []string) []string {
-	if len(lineParts) > 2 {
-		lineParts = []string{lineParts[0], strings.Join(lineParts[1:], "")}
+	if len(lineParts) < 3 {
+		return []string{"invalid la instruction"}
 	}
-	lineParts = append(strings.Split(lineParts[1], ","), lineParts[0]) // [rd, symbol, "la"]
 
-	rd := strings.TrimSpace(lineParts[0])
-	symbol := strings.TrimSpace(lineParts[1])
+	rd := strings.TrimSpace(lineParts[1])
+	symbol := strings.TrimSpace(lineParts[2])
 
 	return []string{
-		"auipc " + rd + ",%pcrel_hi(" + symbol + ")",
-		"addi " + rd + "," + rd + ",%pcrel_lo(" + symbol + ")",
+		fmt.Sprintf("auipc %s, %%pcrel_hi(%s)", rd, symbol),
+		fmt.Sprintf("addi %s, %s, %%pcrel_lo(%s)", rd, rd, symbol),
 	}
 }

@@ -164,9 +164,9 @@ func (p *Program) callDescendants(token *Token) {
 }
 
 func (p *Program) handleString(token *Token) {
+	labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.strings)
 	for _, ch := range token.children[1].value {
 		p.strings = append(p.strings, byte(ch))
 	}
-	labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.strings)
 	p.strings = append(p.strings, uint8(0))
 }
