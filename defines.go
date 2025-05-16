@@ -36,13 +36,20 @@ type OpPair struct {
 	opByte []byte
 }
 
+// PseudoToInstruction here we handle both pseudo instructions and compressed ones
+// since current cpu is not capable of running compressed instruction we decompress them
 var PseudoToInstruction = map[string]func([]string) []string{
 	"mv":  handleMV,
 	"j":   handleJ,
+	"jal": handleJAL,
 	"jr":  handleJR,
+	"add": handleADD,
+	"sub": handleSUB,
 	"ble": handleBLE,
 	"li":  handleLI,
 	"la":  handleLA,
+	"ret": handleRET,
+	"nop": handleNOP,
 }
 
 var InstructionToOpType = map[string]OpPair{

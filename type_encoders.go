@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
+	"strings"
 )
 
 func TranslateRType(opcode int, rd int, func3 int, rs1 int, rs2 int, func7 int) uint32 {
@@ -177,15 +179,15 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 		opcode := int(t.opPair.opByte[0])
 		func3 := int(t.opPair.opByte[1])
 		func7 := int(t.opPair.opByte[2])
-		rd, err := t.children[0].getRegisterFromABI()
+		rd, err := t.children[0].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
-		rs1, err := t.children[1].getRegisterFromABI()
+		rs1, err := t.children[1].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
-		rs2, err := t.children[2].getRegisterFromABI()
+		rs2, err := t.children[2].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
@@ -193,7 +195,7 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 	case I: // lw x0, 0(x0)
 		opcode := int(t.opPair.opByte[0])
 		func3 := int(t.opPair.opByte[1])
-		rd, err := t.children[0].getRegisterFromABI()
+		rd, err := t.children[0].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
@@ -217,7 +219,7 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 	case S: //sw x0, 0(x0)
 		opcode := int(t.opPair.opByte[0])
 		func3 := int(t.opPair.opByte[1])
-		rs1, err := t.children[0].getRegisterFromABI()
+		rs1, err := t.children[0].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
@@ -229,11 +231,11 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 	case B: // beq x0, x0, 0
 		opcode := int(t.opPair.opByte[0])
 		func3 := int(t.opPair.opByte[1])
-		rs1, err := t.children[0].getRegisterFromABI()
+		rs1, err := t.children[0].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
-		rs2, err := t.children[1].getRegisterFromABI()
+		rs2, err := t.children[1].getRegisterNumericValue()
 		tmp, imm, err := p.parseComplexValue(t.children[2], relativeInstrCount)
 		if err != nil {
 			return 0, err
@@ -244,7 +246,7 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 		return TranslateBType(opcode, func3, rs1, rs2, imm), nil
 	case U: // lui x0, 0
 		opcode := int(t.opPair.opByte[0])
-		rd, err := t.children[0].getRegisterFromABI()
+		rd, err := t.children[0].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
@@ -259,7 +261,7 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 		return TranslateUType(opcode, rd, imm), nil
 	case J: // jal x0, 0
 		opcode := int(t.opPair.opByte[0])
-		rd, err := t.children[0].getRegisterFromABI()
+		rd, err := t.children[0].getRegisterNumericValue()
 		if err != nil {
 			return 0, err
 		}
@@ -271,6 +273,9 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 			imm = tmp
 		}
 		return TranslateJType(opcode, rd, imm), nil
+
+		//COMPRESSED INSTRUCTIONS HAVE BEEN IMPLEMENTED VIA PREPROCESSER AS THE CPU IS NOT
+		//SUPPOSED TO BE CAPABLE OF HANDLING COMPRESSED INSTRUCTIONS
 	case CI:
 		return 0, errors.New("todo: compressed instructions (CI)") //todo
 	case CSS:
@@ -292,6 +297,64 @@ func (p *Program) InstructionToBinary(t *Token, relativeInstrCount int) (uint32,
 	}
 }
 
+// Updated parseIntValue function to handle hex values and character literals
+func parseIntValue(valueStr string) (int, error) {
+	// Strip whitespace
+	valueStr = strings.TrimSpace(valueStr)
+
+	// Handle character literal 'X'
+	if len(valueStr) >= 3 && valueStr[0] == '\'' && valueStr[len(valueStr)-1] == '\'' {
+		// Extract the character between the quotes
+		char := valueStr[1 : len(valueStr)-1]
+
+		// Handle escape sequences if present
+		if len(char) > 1 && char[0] == '\\' {
+			switch char[1] {
+			case 'n':
+				return int('\n'), nil
+			case 'r':
+				return int('\r'), nil
+			case 't':
+				return int('\t'), nil
+			case '\\':
+				return int('\\'), nil
+			case '\'':
+				return int('\''), nil
+			case '0':
+				return 0, nil
+				//we could add more but too long
+			default:
+				return 0, fmt.Errorf("unsupported escape sequence: %s", char)
+			}
+		} else if len(char) == 1 {
+			// Single character
+			return int(char[0]), nil
+		} else {
+			return 0, fmt.Errorf("invalid character literal: %s", valueStr)
+		}
+	}
+
+	base := 10
+	// Check if this is a hex value
+	if strings.HasPrefix(valueStr, "0x") || strings.HasPrefix(valueStr, "0X") {
+		valueStr = valueStr[2:] // Remove the 0x prefix
+		base = 16
+	}
+
+	// First parse as int64 to handle the full range of 32-bit unsigned values
+	val, err := strconv.ParseInt(valueStr, base, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	// Check if value is within 32-bit range
+	if val < math.MinInt32 || val > math.MaxUint32 {
+		return 0, fmt.Errorf("value %s is out of range for 32-bit architecture", valueStr)
+	}
+
+	return int(val), nil
+}
+
 func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, int, error) {
 	switch tok.tokenType { //0(x0) OU 0(.LC1)
 	case complexValue:
@@ -301,21 +364,21 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 				if err != nil {
 					return 0, 0, err
 				}
-				imm, err := strconv.Atoi(tok.children[0].value)
+				imm, err := parseIntValue(tok.children[0].value)
 				if err != nil {
 					return 0, 0, err
 				}
-				return reg, imm, nil
+				return reg, int(imm), nil
 			} else { //constant
 				con, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 				if err != nil {
 					return 0, 0, errors.New(tok.children[1].value + " not found")
 				}
-				imm, err := strconv.Atoi(tok.children[0].value)
+				imm, err := parseIntValue(tok.children[0].value)
 				if err != nil {
 					return 0, 0, err
 				}
-				return con, imm, nil
+				return con, int(imm), nil
 			}
 		} else {
 			parsed, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
@@ -342,7 +405,6 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 			return 0, 0, err
 		}
 		return 0, val, nil
-
 	}
 	return 0, 0, nil
 }
@@ -375,11 +437,11 @@ func parseLabelOrLiteral(tok *Token, instructionRelativePos int) (int, error) {
 		imm -= instructionRelativePos
 		return imm, nil
 	case literal:
-		imm, err := strconv.Atoi(tok.value)
+		val, err := parseIntValue(tok.value)
 		if err != nil {
 			return 0, err
 		}
-		return imm, nil
+		return int(val), nil
 	case register:
 		imm, err := matchTokenValid(tok.value)
 		if err != nil {

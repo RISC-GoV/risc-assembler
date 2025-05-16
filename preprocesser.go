@@ -62,6 +62,18 @@ func handleJ(lineParts []string) []string {
 	return []string{fmt.Sprintf("jal x0, %s", target)}
 }
 
+func handleJAL(lineParts []string) []string {
+	rg := strings.TrimSpace(lineParts[1])
+	if len(lineParts) < 3 {
+		return []string{fmt.Sprintf("jal x1, %s", rg)}
+	}
+
+	rd := strings.TrimSpace(lineParts[1])
+	rg = strings.TrimSpace(lineParts[2])
+	//rd already contains the necessary comma for %s
+	return []string{fmt.Sprintf("jal %s %s", rd, rg)}
+}
+
 func handleJR(lineParts []string) []string {
 	if len(lineParts) < 2 {
 		return []string{"invalid jr instruction"}
@@ -69,6 +81,30 @@ func handleJR(lineParts []string) []string {
 
 	rs := strings.TrimSpace(lineParts[1])
 	return []string{fmt.Sprintf("jalr x0, %s, 0", rs)}
+}
+
+func handleADD(lineParts []string) []string {
+	rd := strings.TrimSpace(lineParts[1])
+	rs := strings.TrimSpace(lineParts[2])
+	if len(lineParts) < 4 {
+		//rd already contains the necessary comma for  %s
+		return []string{fmt.Sprintf("add %s %s %s", rd, rd, rs)}
+	}
+	val := strings.TrimSpace(lineParts[3])
+	//rd and rs already contain the necessary comma for %s
+	return []string{fmt.Sprintf("add %s %s %s", rd, rs, val)}
+}
+
+func handleSUB(lineParts []string) []string {
+	rd := strings.TrimSpace(lineParts[1])
+	rs := strings.TrimSpace(lineParts[2])
+	if len(lineParts) < 4 {
+		//rd already contains the necessary comma for  %s
+		return []string{fmt.Sprintf("sub %s %s %s", rd, rd, rs)}
+	}
+	val := strings.TrimSpace(lineParts[3])
+	//rd and rs already contain the necessary comma for %s
+	return []string{fmt.Sprintf("sub %s %s %s", rd, rs, val)}
 }
 
 func handleBLE(lineParts []string) []string {
@@ -122,5 +158,17 @@ func handleLA(lineParts []string) []string {
 	return []string{
 		fmt.Sprintf("auipc %s, %%pcrel_hi(%s)", rd, symbol),
 		fmt.Sprintf("addi %s, %s, %%pcrel_lo(%s)", rd, rd, symbol),
+	}
+}
+
+func handleRET(lineParts []string) []string {
+	return []string{
+		"jalr x0, 0(x1)",
+	}
+}
+
+func handleNOP(lineParts []string) []string {
+	return []string{
+		"addi x0, x0, 0",
 	}
 }

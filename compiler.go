@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -56,29 +55,45 @@ func (p *Program) recursiveCompilation(token *Token) {
 			p.handleString(token)
 			goto endGoTo
 		case ".byte":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = append(varValue, byte(val))
 			}
-			varValue = append(varValue, byte(val))
 		case ".hword":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = binary.LittleEndian.AppendUint16(varValue, uint16(val))
 			}
-			varValue = binary.LittleEndian.AppendUint16(varValue, uint16(val))
 		case ".word":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = binary.LittleEndian.AppendUint32(varValue, uint32(val))
 			}
-			varValue = binary.LittleEndian.AppendUint32(varValue, uint32(val))
 		case ".dword":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 			}
-			varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 		}
 
 		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.variables)
@@ -93,29 +108,45 @@ func (p *Program) recursiveCompilation(token *Token) {
 			p.handleString(token)
 			goto endGoTo
 		case ".byte":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = append(varValue, byte(val))
 			}
-			varValue = append(varValue, byte(val))
 		case ".hword":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = binary.LittleEndian.AppendUint16(varValue, uint16(val))
 			}
-			varValue = binary.LittleEndian.AppendUint16(varValue, uint16(val))
 		case ".word":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = binary.LittleEndian.AppendUint32(varValue, uint32(val))
 			}
-			varValue = binary.LittleEndian.AppendUint32(varValue, uint32(val))
 		case ".dword":
-			val, err := strconv.Atoi(token.children[1].value)
-			if err != nil {
-				panic(err)
+			// Handle multiple comma-separated values
+			values := splitValues(token.children[1].value)
+			for _, valueStr := range values {
+				val, err := parseIntValue(valueStr)
+				if err != nil {
+					panic(err)
+				}
+				varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 			}
-			varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 		default:
 			if token.children[0].tokenType == instruction {
 				labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.constants)
@@ -161,6 +192,15 @@ func (p *Program) callDescendants(token *Token) {
 	for _, tk := range token.children {
 		p.recursiveCompilation(tk)
 	}
+}
+
+// Helper function to split comma-separated values and trim whitespace since we repeat it in all vars
+func splitValues(valueStr string) []string {
+	values := strings.Split(valueStr, ",")
+	for i, v := range values {
+		values[i] = strings.TrimSpace(v)
+	}
+	return values
 }
 
 func (p *Program) handleString(token *Token) {

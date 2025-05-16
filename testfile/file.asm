@@ -18,17 +18,11 @@ loop_start:
 
 loop_end:
     # x1 is now equal to x2
-    
-    # Store the final value
-    sw x1, 4(x11)         # Store the final value of x1 into de
-
-    # Option 1: Infinite loop once x1 == x2
-infinite_loop:
-    jal x0, infinite_loop # Infinite loop - program stays here forever
-
-    # Option 2: Exit program (uncomment these lines if you want to exit instead)
-    # li a7, 10           # Exit syscall number (10)
-    # ecall               # Make syscall to exit
+    # Exit program (uncomment these lines if you want to exit instead)
+    li a7, 93      # Correct exit syscall number for RISC-V Linux
+    li a0, 0       # Exit code 0 (success)
+    ebreak
+    ecall               # Make syscall to exit
 
 # ===========================
 # Branch targets (not used in main logic)
@@ -38,6 +32,9 @@ branch_equal:
     jal x0, continue
 
 branch_notequal:
+    li x1, 10             # x1 = 10
+    li x2, 0            # x2 = 0
+    ebreak
     # Code for when x1 != x2
     jal x0, continue
 
@@ -77,8 +74,6 @@ _start:
 
     # Memory operations (assumes x11 holds address)
     la x11, dt            # Load address of dt into x11
-    lw x12, 0(x11)        # Load word from dt into x12
-    sw x1, 4(x11)         # Store x1 into de (4 bytes after dt)
 
     # Branches (for demonstration, not used in loop)
     beq x1, x2, branch_equal

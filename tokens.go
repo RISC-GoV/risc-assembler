@@ -48,21 +48,33 @@ func (t *Token) getValue() string {
 	return t.value
 }
 
-func (t *Token) getValueFromLiteral() (int, error) {
-	if t.tokenType != literal {
-		return 0, errors.New("token is not of type literal")
+func (t *Token) getRegisterNumericValue() (int, error) {
+	if t.tokenType != register {
+		return -1, errors.New("token is not of type register")
 	}
+	ret, err := t.getRegisterFromABI()
+	if err != nil {
+		ret, err2 := t.getValueFromLiteral()
+		if err2 != nil {
+			return 0, errors.New(fmt.Sprintf("%s   AND   %s", err2, err))
+		}
+		return ret, nil
+	}
+	return ret, nil
+}
+
+func (t *Token) getValueFromLiteral() (int, error) {
 	ret, err := strconv.Atoi(t.value)
 	if err != nil {
 		return 0, err
+	}
+	if ret > 31 {
+		return 0, errors.New(fmt.Sprintf("register value (%d) is out of range 31", ret))
 	}
 	return ret, nil
 }
 
 func (t *Token) getRegisterFromABI() (int, error) {
-	if t.tokenType != register {
-		return -1, errors.New("token is not of type register")
-	}
 	res, err := matchTokenValid(t.value)
 	if err != nil {
 		return -1, err

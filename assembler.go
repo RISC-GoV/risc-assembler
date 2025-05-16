@@ -90,7 +90,6 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	ln := cleanupStr(lineParts[0])
 
 	if ln[0] == '.' {
-		// todo handle either size of var (.word) or section (.text) or constant (.LC0:)
 		if parent.tokenType == global || parent.tokenType == section || parent.tokenType == globalLabel || parent.tokenType == constant {
 			if ln == ".section" {
 				if len(lineParts) == 2 {
@@ -121,19 +120,40 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				a.Token.children = append(a.Token.children, tk)
 				return tk, nil
 			} else {
-				// constant variable defined without label
+				// variable defined with label on line before
 				var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[1:], " "))
 
 				varS, isN := getVarSize(lineParts[0])
 				if isN {
-					constantCount += varS
+					if parent.tokenType == constant {
+						constantCount += varS
+					} else {
+						variableCount += varS
+					}
 				} else {
 					finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
 					stringCount += len(finalLinePart2)*8 - 8
 				}
+				if parent.tokenType == section {
+					parent = parent.children[len(parent.children)-1]
+					//change parent from globallabel (theoretically) to varLabel
+					// if parent.parent is nil then we are at root.
+				} else if parent.tokenType != constant && parent.parent != nil {
+					parent.tokenType = varLabel
+					parent.parent.children = append(parent.parent.children, a.Token.children[len(a.Token.children)-1])
+					//remove child from a
+					a.Token.children = a.Token.children[:len(a.Token.children)-1]
+				} else if parent.tokenType != constant {
+					parent = a.Token.children[len(a.Token.children)-1]
+					parent.tokenType = varLabel
+				}
 				//add var size and value
 				parent.children = []*Token{NewToken(varSize, cleanupStr(lineParts[0]), parent), NewToken(varValue, finalLinePart2, parent)}
-				return parent, nil
+				if parent.parent != nil {
+					return parent.parent, nil
+				} else {
+					return parent, nil
+				}
 			}
 		} else {
 			// variable / constant size
@@ -173,23 +193,6 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				parent.children = append(parent.children, tk)
 				return parent, nil
 			}
-		} else if parent.tokenType == section || parent.tokenType == constant {
-			//vars
-			//increase instruction count to keep track of variable Size
-			var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[2:], " "))
-			varS, isN := getVarSize(lineParts[1])
-			if isN {
-				variableCount += varS
-			} else {
-				finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
-				stringCount += len(finalLinePart2)*8 - 8
-			}
-
-			tk := NewToken(varLabel, ln, parent)
-			//add var size and value
-			tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, finalLinePart2, tk)}
-			parent.children = append(parent.children, tk)
-			return parent, nil
 		}
 	}
 	// either variable value or code line
@@ -275,15 +278,20 @@ func LexIType(strArr []string, parent *Token) error {
 		return err
 	}
 
-	_, err = strconv.Atoi(strArr[len(strArr)-1])
+	adjustedVal, err := parseIntValue(strArr[len(strArr)-1])
 	if err != nil {
 		var vals = strings.Split(strArr[len(strArr)-1], "(")
 
 		if len(vals) != 2 {
-			parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
+			cleanedStr := cleanupStr(vals[0])
+			if _, ok := matchTokenValid(cleanedStr); ok == nil {
+				parent.children = append(parent.children, NewToken(register, cleanedStr, parent))
+			} else {
+				parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
+			}
 		} else {
 			child := NewToken(complexValue, strArr[len(strArr)-1], parent)
-			_, err = strconv.Atoi(cleanupStr(vals[0]))
+			adjustedVal, err = parseIntValue(cleanupStr(vals[0]))
 			if err != nil {
 
 				if strings.Contains(vals[0], "%") {
@@ -293,12 +301,13 @@ func LexIType(strArr []string, parent *Token) error {
 					return errors.New("I TYPE: Offset is not a number " + vals[0])
 				}
 			} else {
-				child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
+				child.children = append(child.children, NewToken(literal, strconv.Itoa(adjustedVal), child))
 			}
 
 			cleanedStr := cleanupStr(vals[1][:len(vals[1])-1])
-			_, err = strconv.Atoi(cleanedStr)
+			adjustedVal, err = parseIntValue(cleanedStr)
 			if err == nil {
+				child.value = strconv.Itoa(adjustedVal)
 				child.children = append(child.children, NewToken(literal, cleanedStr, child))
 			} else if strings.Contains(vals[1], ".") {
 				child.children = append(child.children, NewToken(constantValue, cleanedStr, child))
@@ -310,7 +319,7 @@ func LexIType(strArr []string, parent *Token) error {
 			parent.children = append(parent.children, child)
 		}
 	} else {
-		parent.children = append(parent.children, NewToken(literal, strArr[len(strArr)-1], parent))
+		parent.children = append(parent.children, NewToken(literal, strconv.Itoa(adjustedVal), parent))
 	}
 
 	return nil
@@ -326,10 +335,15 @@ func LexSType(strArr []string, parent *Token) error {
 	var vals = strings.Split(strArr[len(strArr)-1], "(")
 
 	if len(vals) != 2 {
-		parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
+		cleanedStr := cleanupStr(vals[0])
+		if _, ok := matchTokenValid(cleanedStr); ok == nil {
+			parent.children = append(parent.children, NewToken(register, cleanedStr, parent))
+		} else {
+			parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
+		}
 	} else {
 		child := NewToken(complexValue, strArr[len(strArr)-1], parent)
-		_, err = strconv.Atoi(cleanupStr(vals[0]))
+		adjustedVal, err := parseIntValue(cleanupStr(vals[0]))
 		if err != nil {
 
 			if strings.Contains(vals[0], "%") {
@@ -339,12 +353,13 @@ func LexSType(strArr []string, parent *Token) error {
 				return errors.New("S TYPE: Offset is not a number " + vals[0])
 			}
 		} else {
-			child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
+			child.children = append(child.children, NewToken(literal, strconv.Itoa(adjustedVal), child))
 		}
 
 		cleanupStr := cleanupStr(vals[1][:len(vals[1])-1])
-		_, err = strconv.Atoi(cleanupStr)
+		adjustedVal, err = parseIntValue(cleanupStr)
 		if err == nil {
+			child.value = strconv.Itoa(adjustedVal)
 			child.children = append(child.children, NewToken(literal, cleanupStr, child))
 		} else if strings.Contains(vals[1], ".") {
 			child.children = append(child.children, NewToken(constantValue, cleanupStr, child))
@@ -371,29 +386,34 @@ func LexUType(strArr []string, parent *Token) error {
 		return err
 	}
 
-	_, err = strconv.Atoi(strArr[len(strArr)-1])
+	adjustedVal, err := parseIntValue(strArr[len(strArr)-1])
 	if err != nil {
 		var vals = strings.Split(strArr[len(strArr)-1], "(")
 
 		if len(vals) != 2 {
-			parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
+			cleanedStr := cleanupStr(vals[0])
+			if _, ok := matchTokenValid(cleanedStr); ok == nil {
+				parent.children = append(parent.children, NewToken(register, cleanedStr, parent))
+			} else {
+				parent.children = append(parent.children, NewToken(varValue, vals[0], parent))
+			}
 		} else {
 			child := NewToken(complexValue, strArr[len(strArr)-1], parent)
-			_, err = strconv.Atoi(cleanupStr(vals[0]))
+			adjustedVal, err = parseIntValue(cleanupStr(vals[0]))
 			if err != nil {
-
 				if strings.Contains(vals[0], "%") {
 					child.children = append(child.children, NewToken(modifier, cleanupStr(vals[0]), child))
 				} else {
 					return errors.New("I TYPE: Offset is not a number " + vals[0])
 				}
 			} else {
-				child.children = append(child.children, NewToken(literal, cleanupStr(vals[0]), child))
+				child.children = append(child.children, NewToken(literal, strconv.Itoa(adjustedVal), child))
 			}
 
 			cleanupStr := cleanupStr(vals[1][:len(vals[1])-1])
-			_, err = strconv.Atoi(cleanupStr)
+			adjustedVal, err = parseIntValue(cleanupStr)
 			if err == nil {
+				child.value = strconv.Itoa(adjustedVal)
 				child.children = append(child.children, NewToken(literal, cleanupStr, child))
 			} else if strings.Contains(vals[1], ".") {
 				child.children = append(child.children, NewToken(constantValue, cleanupStr, child))
@@ -405,7 +425,7 @@ func LexUType(strArr []string, parent *Token) error {
 			parent.children = append(parent.children, child)
 		}
 	} else {
-		parent.children = append(parent.children, NewToken(literal, strArr[len(strArr)-1], parent))
+		parent.children = append(parent.children, NewToken(literal, strconv.Itoa(adjustedVal), parent))
 	}
 
 	return nil
