@@ -150,7 +150,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 		default:
 			if token.children[0].tokenType == instruction {
 				labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.constants)
-				p.callDescendants(token)
+				p.callDescendants(token, p.recursiveCompilation)
 				goto endGoTo
 			}
 		}
@@ -167,7 +167,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 	case section:
 		fallthrough
 	case global:
-		p.callDescendants(token)
+		p.callDescendants(token, p.recursiveCompilation)
 	case instruction:
 		callbackInstructions = append(callbackInstructions,
 			[2]interface{}{func(relativeInstrCount int) {
@@ -188,9 +188,9 @@ func (p *Program) recursiveCompilation(token *Token) {
 endGoTo:
 }
 
-func (p *Program) callDescendants(token *Token) {
-	for _, tk := range token.children {
-		p.recursiveCompilation(tk)
+func (p *Program) callDescendants(token *Token, recursionFn func(*Token)) {
+	for _, child := range token.children {
+		recursionFn(child)
 	}
 }
 

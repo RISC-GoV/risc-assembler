@@ -4,11 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-func (a *Assembler) Assemble(filename string) error {
+func (a *Assembler) Assemble(filename string, outputFolder string) error {
 	if a.Token == nil {
 		a.Token = NewToken(global, "", nil)
 	}
@@ -37,7 +38,22 @@ func (a *Assembler) Assemble(filename string) error {
 	}
 
 	str := printTokenTree(a.Token, 0)
-	ferr := os.WriteFile("./testfile/output.parser", []byte(str), 0644)
+	// Ensure output folder exists
+	if outputFolder != "" {
+		if _, err := os.Stat(outputFolder); os.IsNotExist(err) {
+			err = os.MkdirAll(outputFolder, 0755)
+			if err != nil {
+				// handle error (e.g. log and return)
+				panic(fmt.Sprintf("Failed to create output folder: %v", err))
+			}
+		}
+	}
+
+	// Define output file path
+	outputPath := filepath.Join(outputFolder, "output.parser")
+
+	// Write to file
+	ferr := os.WriteFile(outputPath, []byte(str), 0644)
 	if ferr != nil {
 		println(ferr.Error())
 	} else {
@@ -120,6 +136,17 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				// constant
 				tk := NewToken(constant, ln, a.Token)
 				a.Token.children = append(a.Token.children, tk)
+				if len(lineParts) > 1 {
+					var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[2:], " "))
+					varS, isN := getVarSize(lineParts[1])
+					if isN {
+						constantCount += varS
+					} else {
+						finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
+						stringCount += len(finalLinePart2)*8 - 8
+					}
+					tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, finalLinePart2, tk)}
+				}
 				return tk, nil
 			} else if len(lineParts) == 1 {
 				// section
