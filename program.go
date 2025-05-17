@@ -1,4 +1,4 @@
-package main
+package assembler
 
 type Program struct {
 	machinecode []byte

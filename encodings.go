@@ -1,4 +1,4 @@
-package main
+package assembler
 
 type Instruction struct {
 	opcode    byte
