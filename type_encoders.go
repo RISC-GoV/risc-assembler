@@ -336,7 +336,10 @@ func parseIntValue(valueStr string) (int, error) {
 
 	base := 10
 	// Check if this is a hex value
-	if strings.HasPrefix(valueStr, "0x") || strings.HasPrefix(valueStr, "0X") {
+	if strings.HasPrefix(valueStr, "-0x") || strings.HasPrefix(valueStr, "-0X") {
+		valueStr = "-" + valueStr[3:] // Remove the 0x prefix
+		base = 16
+	} else if strings.HasPrefix(valueStr, "0x") || strings.HasPrefix(valueStr, "0X") {
 		valueStr = valueStr[2:] // Remove the 0x prefix
 		base = 16
 	}
@@ -351,8 +354,7 @@ func parseIntValue(valueStr string) (int, error) {
 	if val < math.MinInt32 || val > math.MaxUint32 {
 		return 0, fmt.Errorf("value %s is out of range for 32-bit architecture", valueStr)
 	}
-
-	return int(val), nil
+	return int(int32(val)), nil
 }
 
 func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, int, error) {
