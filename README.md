@@ -1,7 +1,10 @@
 # risc-assembler
 
 
-example usage 
+## example usage
+`
+go get github.com/RISC-GoV/risc-assembler@dirty
+`
 ```go
 package main
 
@@ -16,8 +19,8 @@ func main() {
 		fmt.Println("Usage: assembler <input.s>")
 		os.Exit(1)
 	}
-	asm := Assembler{}
-	asm.Token = NewToken(global, "", nil)
+	asm := assembler.Assembler{}
+	asm.Token = assembler.NewToken(global, "", nil)
 	if err := asm.Assemble(os.Args[1]); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

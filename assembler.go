@@ -9,6 +9,9 @@ import (
 )
 
 func (a *Assembler) Assemble(filename string) error {
+	if a.Token == nil {
+		a.Token = NewToken(global, "", nil)
+	}
 	file, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -34,7 +37,12 @@ func (a *Assembler) Assemble(filename string) error {
 	}
 
 	str := printTokenTree(a.Token, 0)
-	println("parsing saved to ./testfile/output.parser")
+	ferr := os.WriteFile("./testfile/output.parser", []byte(str), 0644)
+	if ferr != nil {
+		println(ferr.Error())
+	} else {
+		println("parsing saved to ./testfile/output.parser")
+	}
 	fmt.Println("blocks sizes")
 	fmt.Print("instructions (4bytes/instr): ")
 	fmt.Println(instructionCount)
@@ -46,7 +54,6 @@ func (a *Assembler) Assemble(filename string) error {
 	fmt.Println(constantCount)
 	fmt.Print("strings: ")
 	fmt.Println(stringCount)
-	os.WriteFile("./testfile/output.parser", []byte(str), 0644)
 
 	prog := compile(a.Token)
 	bytes := BuildELFFile(prog)
