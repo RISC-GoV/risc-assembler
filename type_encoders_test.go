@@ -57,7 +57,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    3,
 				func7:  0b0000000,
 			},
-			want: 0b00000000001100010000000010110011, // 0x00318033
+			want: 0b00000000001100010000000010110011,
 		},
 		{
 			name: "sub x10, x20, x15",
@@ -69,7 +69,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    15,
 				func7:  0b0100000,
 			},
-			want: 0b01000000111110100000010100110011, // 0x40FA0533
+			want: 0b01000000111110100000010100110011,
 		},
 		{
 			name: "xor x5, x10, x31",
@@ -81,7 +81,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    31,
 				func7:  0b0000000,
 			},
-			want: 0b00000001111101010100001010110011, // 0x01F542B3
+			want: 0b00000001111101010100001010110011,
 		},
 		{
 			name: "or x15, x3, x4",
@@ -93,7 +93,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    4,
 				func7:  0b0000000,
 			},
-			want: 0b00000000010000011110011110110011, // 0x0041E7B3
+			want: 0b00000000010000011110011110110011,
 		},
 		{
 			name: "and x31, x0, x5",
@@ -105,7 +105,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    5,
 				func7:  0b0000000,
 			},
-			want: 0b00000000010100000111111110110011, // 0x00507FB3
+			want: 0b00000000010100000111111110110011,
 		},
 		{
 			name: "sll x4, x5, x6",
@@ -117,7 +117,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    6,
 				func7:  0b0000000,
 			},
-			want: 0b00000000011000101001001000110011, // 0x00629213
+			want: 0b00000000011000101001001000110011,
 		},
 		{
 			name: "srl x2, x3, x4",
@@ -129,7 +129,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    4,
 				func7:  0b0000000,
 			},
-			want: 0b00000000010000011101000100110011, // 0x0041D113
+			want: 0b00000000010000011101000100110011,
 		},
 		{
 			name: "sra x3, x4, x5",
@@ -141,7 +141,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    5,
 				func7:  0b0100000,
 			},
-			want: 0b01000000010100100101000110110011, // 0x4052519B
+			want: 0b01000000010100100101000110110011,
 		},
 		{
 			name: "slt x1, x2, x3",
@@ -153,7 +153,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    3,
 				func7:  0b0000000,
 			},
-			want: 0b00000000001100010010000010110011, // 0x00312033
+			want: 0b00000000001100010010000010110011,
 		},
 		{
 			name: "sltu x10, x20, x30",
@@ -165,7 +165,7 @@ func TestTranslateRType(t *testing.T) {
 				rs2:    30,
 				func7:  0b0000000,
 			},
-			want: 0b00000001111010100011010100110011, // 0x01EA3533
+			want: 0b00000001111010100011010100110011,
 		},
 	}
 
@@ -200,7 +200,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    2,
 				imm:    10,
 			},
-			want: 0b00000000101000010000000010010011, // 0x00A10093
+			want: 0b00000000101000010000000010010011,
 		},
 		{
 			name: "lw x10, 4(x15)",
@@ -211,7 +211,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    15,
 				imm:    4,
 			},
-			want: 0b00000000010001111010010100000011, // 0x0047A503
+			want: 0b00000000010001111010010100000011,
 		},
 		{
 			name: "slti x5, x10, -100",
@@ -222,7 +222,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    10,
 				imm:    -100,
 			},
-			want: 0b11111001110001010010001010010011, // 0xF9C52293
+			want: 0b11111001110001010010001010010011,
 		},
 		{
 			name: "sltiu x15, x20, 4095",
@@ -233,7 +233,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    20,
 				imm:    4095, // Maximum 12-bit immediate value (0xFFF)
 			},
-			want: 0b11111111111110100011011110010011, // 0xFFFA37B3
+			want: 0b11111111111110100011011110010011,
 		},
 		{
 			name: "xori x31, x0, -1",
@@ -244,7 +244,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    0,
 				imm:    -1,
 			},
-			want: 0b11111111111100000100111110010011, // 0xFFF04FB3
+			want: 0b11111111111100000100111110010011,
 		},
 		{
 			name: "ori x4, x5, 42",
@@ -255,7 +255,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    5,
 				imm:    42,
 			},
-			want: 0b00000010101000101110001000010011, // 0x02A6E213
+			want: 0b00000010101000101110001000010011,
 		},
 		{
 			name: "andi x2, x3, 0xFF",
@@ -266,7 +266,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    3,
 				imm:    0xFF,
 			},
-			want: 0b00001111111100011111000100010011, // 0x0FF1F113
+			want: 0b00001111111100011111000100010011,
 		},
 		{
 			name: "jalr x1, 20(x3)",
@@ -277,7 +277,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    3,
 				imm:    20,
 			},
-			want: 0b00000001010000011000000011100111, // 0x01410067
+			want: 0b00000001010000011000000011100111,
 		},
 		{
 			name: "lb x10, 0(x20)",
@@ -288,7 +288,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    20,
 				imm:    0,
 			},
-			want: 0b00000000000010100000010100000011, // 0x000A0503
+			want: 0b00000000000010100000010100000011,
 		},
 		{
 			name: "lhu x5, -200(x10)",
@@ -299,7 +299,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    10,
 				imm:    -200,
 			},
-			want: 0b11110011100001010101001010000011, // 0xF865A283
+			want: 0b11110011100001010101001010000011,
 		},
 		{
 			name: "Test with overflow values that should be masked",
@@ -310,7 +310,7 @@ func TestTranslateIType(t *testing.T) {
 				rs1:    0b111111,   // Should be masked to 0b11111
 				imm:    0xFFFFF,    // Should be masked to 0xFFF (12 bits)
 			},
-			want: 0b11111111111111111111111111111111, // 0xFFFFFFFF
+			want: 0b11111111111111111111111111111111,
 		},
 	}
 
@@ -345,7 +345,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    1,
 				imm:    0,
 			},
-			want: 0b00000000000100010010000000100011, // 0x00112023
+			want: 0b00000000000100010010000000100011,
 		},
 		{
 			name: "sb x10, 4(x15)",
@@ -356,7 +356,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    10,
 				imm:    4,
 			},
-			want: 0b00000000101001111000001000100011, // 0x00A78223
+			want: 0b00000000101001111000001000100011,
 		},
 		{
 			name: "sh x20, -8(x5)",
@@ -367,7 +367,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    20,
 				imm:    -8,
 			},
-			want: 0b11111111010000101001110000100011, // 0xFB452C23
+			want: 0b11111111010000101001110000100011,
 		},
 		{
 			name: "sw x31, 2047(x0)",
@@ -378,7 +378,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    31,
 				imm:    2047, // Maximum positive 12-bit immediate
 			},
-			want: 0b01111111111100000010111110100011, // 0x7FF02FA3
+			want: 0b01111111111100000010111110100011,
 		},
 		{
 			name: "sw x5, -2048(x10)",
@@ -389,7 +389,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    5,
 				imm:    -2048, // Minimum negative 12-bit immediate
 			},
-			want: 0b10000000010101010010000000100011, // 0x805A2023
+			want: 0b10000000010101010010000000100011,
 		},
 		{
 			name: "sb x0, 100(x31)",
@@ -400,7 +400,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    0,
 				imm:    100,
 			},
-			want: 0b00000110000011111000001000100011, // 0x0647F823
+			want: 0b00000110000011111000001000100011,
 		},
 		{
 			name: "sh x15, -100(x20)",
@@ -411,7 +411,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    15,
 				imm:    -100,
 			},
-			want: 0b11111000111110100001111000100011, // 0xF9FA1A23
+			want: 0b11111000111110100001111000100011,
 		},
 		{
 			name: "sw x10, 8(x5)",
@@ -422,7 +422,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    10,
 				imm:    8,
 			},
-			want: 0b00000000101000101010010000100011, // 0x00A52423
+			want: 0b00000000101000101010010000100011,
 		},
 		{
 			name: "sw x20, -4(x15)",
@@ -433,7 +433,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    20,
 				imm:    -4,
 			},
-			want: 0b11111111010001111010111000100011, // 0xFFA7AE23
+			want: 0b11111111010001111010111000100011,
 		},
 		{
 			name: "sb x2, 1023(x3)",
@@ -444,7 +444,7 @@ func TestTranslateSType(t *testing.T) {
 				rs2:    2,
 				imm:    1023,
 			},
-			want: 0b00111110001000011000111110100011, // 0x7F231FA3
+			want: 0b00111110001000011000111110100011,
 		},
 	}
 
@@ -479,7 +479,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    2,
 				imm:    16,
 			},
-			want: 0b00000000001000001000100001100011, // 0x00208863
+			want: 0b00000000001000001000100001100011,
 		},
 		{
 			name: "bne x10, x15, -16",
@@ -490,7 +490,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    15,
 				imm:    -16,
 			},
-			want: 0b11111110111101010001100011100011, // 0xFEF51863
+			want: 0b11111110111101010001100011100011,
 		},
 		{
 			name: "blt x20, x5, 1024",
@@ -501,7 +501,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    5,
 				imm:    1024,
 			},
-			want: 0b01000000010110100100000001100011, // 0x405A4063
+			want: 0b01000000010110100100000001100011,
 		},
 		{
 			name: "bge x5, x10, -1024",
@@ -512,7 +512,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    10,
 				imm:    -1024,
 			},
-			want: 0b11000000101000101101000011100011, // 0xC0A5D063
+			want: 0b11000000101000101101000011100011,
 		},
 		{
 			name: "bltu x15, x20, 2",
@@ -523,7 +523,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    20,
 				imm:    2,
 			},
-			want: 0b00000001010001111110000101100011, // 0x0147E163
+			want: 0b00000001010001111110000101100011,
 		},
 		{
 			name: "bgeu x0, x31, -2",
@@ -534,7 +534,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    31,
 				imm:    -2,
 			},
-			want: 0b11111111111100000111111111100011, // 0xFFF07FE3
+			want: 0b11111111111100000111111111100011,
 		},
 		{
 			name: "beq x3, x4, 2048",
@@ -545,7 +545,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    4,
 				imm:    2048, // This will get masked because it's beyond 13-bit signed range
 			},
-			want: 0b00000000010000011000000011100011, // 0x00418063
+			want: 0b00000000010000011000000011100011,
 		},
 		{
 			name: "bne x25, x26, -2048",
@@ -556,7 +556,7 @@ func TestTranslateBType(t *testing.T) {
 				rs2:    26,
 				imm:    -2048,
 			},
-			want: 0b10000001101011001001000011100011, // 0x81AC9063
+			want: 0b10000001101011001001000011100011,
 		},
 		{
 			name: "Test with overflow values that should be masked",
@@ -598,7 +598,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     1,
 				imm:    1,
 			},
-			want: 0b00000000000000000001000010110111, // 0x00001037
+			want: 0b00000000000000000001000010110111,
 		},
 		{
 			name: "auipc x10, 0xFFFFF",
@@ -607,7 +607,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     10,
 				imm:    0xFFFFF,
 			},
-			want: 0b11111111111111111111010100010111, // 0xFFFFF517
+			want: 0b11111111111111111111010100010111,
 		},
 		{
 			name: "lui x15, 0x12345",
@@ -616,7 +616,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     15,
 				imm:    0x12345,
 			},
-			want: 0b00010010001101000101011110110111, // 0x12345BB7
+			want: 0b00010010001101000101011110110111,
 		},
 		{
 			name: "auipc x20, 0xABCDE",
@@ -625,7 +625,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     20,
 				imm:    0xABCDE,
 			},
-			want: 0b10101011110011011110101000010111, // 0xABCDEA17
+			want: 0b10101011110011011110101000010111,
 		},
 		{
 			name: "lui x0, 0",
@@ -634,7 +634,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     0,
 				imm:    0,
 			},
-			want: 0b00000000000000000000000000110111, // 0x00000037
+			want: 0b00000000000000000000000000110111,
 		},
 		{
 			name: "auipc x31, 0x80000",
@@ -643,7 +643,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     31,
 				imm:    0x80000, // Will be masked to 20 bits
 			},
-			want: 0b10000000000000000000111110010111, // 0x00000F97
+			want: 0b10000000000000000000111110010111,
 		},
 		{
 			name: "lui x5, -1",
@@ -652,7 +652,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     5,
 				imm:    -1,
 			},
-			want: 0b11111111111111111111001010110111, // 0xFFFFF2B7
+			want: 0b11111111111111111111001010110111,
 		},
 		{
 			name: "auipc x25, -4096",
@@ -661,7 +661,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     25,
 				imm:    -4096,
 			},
-			want: 0b11111111000000000000110010010111, // 0xFFFF0C97
+			want: 0b11111111000000000000110010010111,
 		},
 		{
 			name: "lui x10, 0x12",
@@ -670,7 +670,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     10,
 				imm:    0x12,
 			},
-			want: 0b00000000000000010010010100110111, // 0x00012537
+			want: 0b00000000000000010010010100110111,
 		},
 		{
 			name: "auipc x15, 0xFFFFF",
@@ -679,7 +679,7 @@ func TestTranslateUType(t *testing.T) {
 				rd:     15,
 				imm:    0xFFFFF,
 			},
-			want: 0b11111111111111111111011110010111, // 0xFFFFF797
+			want: 0b11111111111111111111011110010111,
 		},
 		{
 			name: "Test with overflow values that should be masked",
@@ -1619,7 +1619,7 @@ func Test_handleModifier(t *testing.T) {
 				val:                0x1234,
 				relativeInstrCount: 0,
 			},
-			want:    0x234, // 0x1234 & 0xFFF
+			want:    0x234,
 			wantErr: false,
 		},
 		{
@@ -1639,7 +1639,7 @@ func Test_handleModifier(t *testing.T) {
 				val:                0x123456,
 				relativeInstrCount: 0,
 			},
-			want:    0x456, // 0x123456 & 0xFFF
+			want:    0x456,
 			wantErr: false,
 		},
 
