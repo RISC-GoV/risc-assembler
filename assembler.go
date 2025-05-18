@@ -73,7 +73,8 @@ func (a *Assembler) Assemble(filename string, outputFolder string) error {
 
 	prog := compile(a.Token)
 	bytes := BuildELFFile(prog)
-	os.WriteFile("./testfile/output.exe", *bytes, 0644)
+	outputPath = filepath.Join(outputFolder, "output.exe")
+	os.WriteFile(outputPath, *bytes, 0644)
 	return nil
 }
 
