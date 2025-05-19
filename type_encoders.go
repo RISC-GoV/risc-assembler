@@ -136,7 +136,7 @@ func TranslateJType(opcode int, rd int, imm int) uint32 {
 	imm11 := imm >> 11 & 0b1
 	imm10_1 := imm >> 1 & 0b1111111111
 	var imm20 int
-	if imm > 0 {
+	if imm >= 0 {
 		imm20 = 0
 	} else {
 		imm20 = 1
