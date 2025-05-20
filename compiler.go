@@ -6,15 +6,21 @@ import (
 	"strings"
 )
 
-func compile(token *Token) Program {
+func compile(token *Token) (Program, error) {
 	prog := Program{}
 	prog.strings = append(prog.strings, uint8(00))
-	prog.recursiveCompilation(token)
+	err := prog.recursiveCompilation(token)
+	if err != nil {
+		return Program{}, err
+	}
 	fmt.Print("final instructions size (should match instructions): ")
 	fmt.Println(instructionCountCompilation)
 
 	for _, fun := range callbackInstructions {
-		fun[0].(func(int))(fun[1].(int))
+		err := fun[0].(func(int) error)(fun[1].(int))
+		if err != nil {
+			return Program{}, err
+		}
 	}
 	if len(prog.strings) == 1 {
 		prog.strings = nil
@@ -30,7 +36,7 @@ func compile(token *Token) Program {
 		binary.LittleEndian.PutUint32(bts, uint32(val))
 		prog.entrypoint = [4]byte(bts)
 	}
-	return prog
+	return prog, nil
 }
 
 var (
@@ -44,7 +50,7 @@ var (
 	callbackInstructions        [][2]interface{}
 )
 
-func (p *Program) recursiveCompilation(token *Token) {
+func (p *Program) recursiveCompilation(token *Token) error {
 	switch token.tokenType {
 	case varLabel:
 		var varValue []byte
@@ -60,7 +66,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = append(varValue, byte(val))
 			}
@@ -70,7 +76,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = binary.LittleEndian.AppendUint16(varValue, uint16(val))
 			}
@@ -80,7 +86,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = binary.LittleEndian.AppendUint32(varValue, uint32(val))
 			}
@@ -90,7 +96,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 			}
@@ -113,7 +119,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = append(varValue, byte(val))
 			}
@@ -123,7 +129,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = binary.LittleEndian.AppendUint16(varValue, uint16(val))
 			}
@@ -133,7 +139,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = binary.LittleEndian.AppendUint32(varValue, uint32(val))
 			}
@@ -143,7 +149,7 @@ func (p *Program) recursiveCompilation(token *Token) {
 			for _, valueStr := range values {
 				val, err := parseIntValue(valueStr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				varValue = binary.LittleEndian.AppendUint64(varValue, uint64(val))
 			}
@@ -167,15 +173,19 @@ func (p *Program) recursiveCompilation(token *Token) {
 	case section:
 		fallthrough
 	case global:
-		p.callDescendants(token, p.recursiveCompilation)
+		err := p.callDescendants(token, p.recursiveCompilation)
+		if err != nil {
+			return err
+		}
 	case instruction:
 		callbackInstructions = append(callbackInstructions,
-			[2]interface{}{func(relativeInstrCount int) {
+			[2]interface{}{func(relativeInstrCount int) error {
 				val, err := p.InstructionToBinary(token, relativeInstrCount)
 				if err != nil {
-					panic(err)
+					return err
 				}
 				p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
+				return nil
 			},
 				instructionCountCompilation})
 		instructionCountCompilation += 4
@@ -186,12 +196,17 @@ func (p *Program) recursiveCompilation(token *Token) {
 
 	}
 endGoTo:
+	return nil
 }
 
-func (p *Program) callDescendants(token *Token, recursionFn func(*Token)) {
+func (p *Program) callDescendants(token *Token, recursionFn func(*Token) error) error {
 	for _, child := range token.children {
-		recursionFn(child)
+		err := recursionFn(child)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Helper function to split comma-separated values and trim whitespace since we repeat it in all vars

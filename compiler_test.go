@@ -378,7 +378,10 @@ start:
 			}
 
 			// Compile the program
-			prog := compile(asm.Token)
+			prog, err := compile(asm.Token)
+			if err != nil {
+				t.Fatalf("Compile error: %v", err)
+			}
 
 			// Check expected results
 			if len(prog.machinecode) != tt.expectedCodeLen {
@@ -459,8 +462,9 @@ label2:
 	calledTokens := []*Token{}
 
 	// Inject tracking function
-	mockRecursive := func(token *Token) {
+	mockRecursive := func(token *Token) error {
 		calledTokens = append(calledTokens, token)
+		return nil
 	}
 
 	p := &Program{}

@@ -33,7 +33,7 @@ func (a *Assembler) Assemble(filename string, outputFolder string) error {
 		}
 		actualParent, err = a.Parse(lineParts, actualParent)
 		if err != nil {
-			panic("LINE " + strconv.Itoa(a.lineNumber) + " " + err.Error())
+			return errors.New("LINE " + strconv.Itoa(a.lineNumber) + " " + err.Error())
 		}
 	}
 
@@ -44,7 +44,7 @@ func (a *Assembler) Assemble(filename string, outputFolder string) error {
 			err = os.MkdirAll(outputFolder, 0755)
 			if err != nil {
 				// handle error (e.g. log and return)
-				panic(fmt.Sprintf("Failed to create output folder: %v", err))
+				return errors.New(fmt.Sprintf("Failed to create output folder: %v", err))
 			}
 		}
 	}
@@ -71,7 +71,10 @@ func (a *Assembler) Assemble(filename string, outputFolder string) error {
 	fmt.Print("strings: ")
 	fmt.Println(stringCount)
 
-	prog := compile(a.Token)
+	prog, err := compile(a.Token)
+	if err != nil {
+		return err
+	}
 	bytes := BuildELFFile(prog)
 	outputPath = filepath.Join(outputFolder, "output.exe")
 	os.WriteFile(outputPath, *bytes, 0644)
@@ -286,7 +289,7 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	case CS:
 		err = LexJType(lineParts, ptk)
 	default:
-		panic("unhandled default case")
+		return parent, errors.New("unhandled OPTYPE for instruction:  '" + ln + "'")
 	}
 
 	if err != nil {
