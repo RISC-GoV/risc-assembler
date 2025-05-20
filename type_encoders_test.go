@@ -4,9 +4,11 @@ import (
 	"testing"
 )
 
+var labelPositionsMockup map[string]int
+
 func init() {
 	// Global variables needed for testing
-	labelPositions = map[string]int{
+	labelPositionsMockup = map[string]int{
 		// Assembly section labels
 		".loop": 100,
 		".exit": 200,
@@ -1306,8 +1308,8 @@ func TestProgram_parseComplexValue(t *testing.T) {
 				tok:                createComplexToken("4", literal, ".LC1", constantValue),
 				relativeInstrCount: 0,
 			},
-			want:    labelPositions[".LC1"], // Label position
-			want1:   4,                      // Offset 4
+			want:    labelPositionsMockup[".LC1"], // Label position
+			want1:   4,                            // Offset 4
 			wantErr: false,
 		},
 		{
@@ -1336,7 +1338,7 @@ func TestProgram_parseComplexValue(t *testing.T) {
 				relativeInstrCount: 0,
 			},
 			want:    0,
-			want1:   labelPositions["test_label"] & 0xFFF, // Lower 12 bits of test_label position
+			want1:   labelPositionsMockup["test_label"] & 0xFFF, // Lower 12 bits of test_label position
 			wantErr: false,
 		},
 		{
@@ -1365,7 +1367,7 @@ func TestProgram_parseComplexValue(t *testing.T) {
 				relativeInstrCount: 0,
 			},
 			want:    0,
-			want1:   ((labelPositions["test_label"]) >> 12) & 0xFFFFF, // Upper 20 bits of test_label position
+			want1:   ((labelPositionsMockup["test_label"]) >> 12) & 0xFFFFF, // Upper 20 bits of test_label position
 			wantErr: false,
 		},
 		{
@@ -1743,7 +1745,7 @@ func Test_parseLabelOrLiteral(t *testing.T) {
 				},
 				instructionRelativePos: 10,
 			},
-			want:    labelPositions["label1"] - 10, // 100 - 10
+			want:    labelPositionsMockup["label1"] - 10, // 100 - 10
 			wantErr: false,
 		},
 		{
@@ -1769,7 +1771,7 @@ func Test_parseLabelOrLiteral(t *testing.T) {
 				},
 				instructionRelativePos: 100,
 			},
-			want:    labelPositions["variable1"] - 100,
+			want:    labelPositionsMockup["variable1"] - 100,
 			wantErr: false,
 		},
 		{
@@ -1795,7 +1797,7 @@ func Test_parseLabelOrLiteral(t *testing.T) {
 				},
 				instructionRelativePos: 50,
 			},
-			want:    labelPositions["constant1"] - 50,
+			want:    labelPositionsMockup["constant1"] - 50,
 			wantErr: false,
 		},
 		{
@@ -1940,7 +1942,8 @@ func Test_parseLabelOrLiteral(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseLabelOrLiteral(tt.args.tok, tt.args.instructionRelativePos)
+			p := Program{}
+			got, err := p.parseLabelOrLiteral(tt.args.tok, tt.args.instructionRelativePos)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseLabelOrLiteral() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -6,17 +6,29 @@ import (
 	"strings"
 )
 
-func compile(token *Token) (Program, error) {
+type Compilation struct {
+	labelPositions              map[string]int //= make(map[string]int)
+	compilationEntryPoint       string
+	instructionCount            int
+	instructionCountCompilation int
+	variableCount               int
+	constantCount               int
+	stringCount                 int //= 8
+	callbackInstructions        [][2]interface{}
+}
+
+func (c *Compilation) compile(token *Token) (Program, error) {
 	prog := Program{}
+	prog.compilationVariables = c
 	prog.strings = append(prog.strings, uint8(00))
 	err := prog.recursiveCompilation(token)
 	if err != nil {
 		return Program{}, err
 	}
 	fmt.Print("final instructions size (should match instructions): ")
-	fmt.Println(instructionCountCompilation)
+	fmt.Println(prog.compilationVariables.instructionCountCompilation)
 
-	for _, fun := range callbackInstructions {
+	for _, fun := range prog.compilationVariables.callbackInstructions {
 		err := fun[0].(func(int) error)(fun[1].(int))
 		if err != nil {
 			return Program{}, err
@@ -25,30 +37,19 @@ func compile(token *Token) (Program, error) {
 	if len(prog.strings) == 1 {
 		prog.strings = nil
 	}
-	if compilationEntryPoint != "" {
-		val, _ := labelPositions[compilationEntryPoint]
+	if prog.compilationVariables.compilationEntryPoint != "" {
+		val, _ := prog.compilationVariables.labelPositions[prog.compilationVariables.compilationEntryPoint]
 		var bts = make([]byte, 4)
 		binary.LittleEndian.PutUint32(bts, uint32(val))
 		prog.entrypoint = [4]byte(bts)
 	} else {
-		val, _ := labelPositions["main"]
+		val, _ := prog.compilationVariables.labelPositions["main"]
 		var bts = make([]byte, 4)
 		binary.LittleEndian.PutUint32(bts, uint32(val))
 		prog.entrypoint = [4]byte(bts)
 	}
 	return prog, nil
 }
-
-var (
-	labelPositions              map[string]int = make(map[string]int)
-	compilationEntryPoint       string
-	instructionCount            int
-	instructionCountCompilation int
-	variableCount               int
-	constantCount               int
-	stringCount                 int = 8
-	callbackInstructions        [][2]interface{}
-)
 
 func (p *Program) recursiveCompilation(token *Token) error {
 	switch token.tokenType {
@@ -102,7 +103,7 @@ func (p *Program) recursiveCompilation(token *Token) error {
 			}
 		}
 
-		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.variables)
+		p.compilationVariables.labelPositions[strings.ReplaceAll(token.value, ":", "")] = p.compilationVariables.instructionCountCompilation + len(p.variables)
 
 		p.variables = append(p.variables, varValue...)
 	case constant:
@@ -155,20 +156,20 @@ func (p *Program) recursiveCompilation(token *Token) error {
 			}
 		default:
 			if token.children[0].tokenType == instruction {
-				labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation + len(p.constants)
+				p.compilationVariables.labelPositions[strings.ReplaceAll(token.value, ":", "")] = p.compilationVariables.instructionCountCompilation + len(p.constants)
 				p.callDescendants(token, p.recursiveCompilation)
 				goto endGoTo
 			}
 		}
-		labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCountCompilation
+		p.compilationVariables.labelPositions[strings.ReplaceAll(token.value, ":", "")] = p.compilationVariables.instructionCountCompilation
 
 		p.constants = append(p.constants, varValue...)
 
 	// case constant:
-	// 	labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCountCompilation + variableCount + len(p.constants)
+	// 	p.compilationVariables.labelPositions[strings.Replace(token.value, ":", "", 1)] = p.compilationVariables.instructionCountCompilation + p.compilationVariables.variableCount + len(p.constants)
 	// 	p.callDescendants(token)
 	case globalLabel:
-		labelPositions[strings.Replace(token.value, ":", "", 1)] = instructionCountCompilation
+		p.compilationVariables.labelPositions[strings.Replace(token.value, ":", "", 1)] = p.compilationVariables.instructionCountCompilation
 		fallthrough
 	case section:
 		fallthrough
@@ -178,7 +179,7 @@ func (p *Program) recursiveCompilation(token *Token) error {
 			return err
 		}
 	case instruction:
-		callbackInstructions = append(callbackInstructions,
+		p.compilationVariables.callbackInstructions = append(p.compilationVariables.callbackInstructions,
 			[2]interface{}{func(relativeInstrCount int) error {
 				val, err := p.InstructionToBinary(token, relativeInstrCount)
 				if err != nil {
@@ -187,11 +188,11 @@ func (p *Program) recursiveCompilation(token *Token) error {
 				p.machinecode = binary.LittleEndian.AppendUint32(p.machinecode, val)
 				return nil
 			},
-				instructionCountCompilation})
-		instructionCountCompilation += 4
+				p.compilationVariables.instructionCountCompilation})
+		p.compilationVariables.instructionCountCompilation += 4
 	case entrypoint:
 		if token.value == ".globl" {
-			compilationEntryPoint = token.children[0].value
+			p.compilationVariables.compilationEntryPoint = token.children[0].value
 		}
 
 	}
@@ -219,7 +220,7 @@ func splitValues(valueStr string) []string {
 }
 
 func (p *Program) handleString(token *Token) {
-	labelPositions[strings.ReplaceAll(token.value, ":", "")] = instructionCount + len(p.strings)
+	p.compilationVariables.labelPositions[strings.ReplaceAll(token.value, ":", "")] = p.compilationVariables.instructionCount + len(p.strings)
 	for _, ch := range token.children[1].value {
 		p.strings = append(p.strings, byte(ch))
 	}

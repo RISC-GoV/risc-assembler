@@ -11,11 +11,12 @@ type Instruction struct {
 }
 
 type Assembler struct {
-	labels     map[string]int
-	lineNumber int
-	Token      *Token
-	output     []uint32
-	currentPC  int
+	labels      map[string]int
+	lineNumber  int
+	Token       *Token
+	output      []uint32
+	currentPC   int
+	compilation Compilation
 }
 
 func (a *Assembler) encodeRType(inst *Instruction) uint32 {

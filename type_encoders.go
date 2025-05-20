@@ -362,7 +362,7 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 	case complexValue:
 		if tok.children[0].tokenType == literal {
 			if tok.children[1].tokenType == register {
-				reg, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
+				reg, err := p.parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 				if err != nil {
 					return 0, 0, err
 				}
@@ -372,7 +372,7 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 				}
 				return reg, int(imm), nil
 			} else { //constant
-				con, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
+				con, err := p.parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 				if err != nil {
 					return 0, 0, errors.New(tok.children[1].value + " not found")
 				}
@@ -383,7 +383,7 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 				return con, int(imm), nil
 			}
 		} else {
-			parsed, err := parseLabelOrLiteral(tok.children[1], relativeInstrCount)
+			parsed, err := p.parseLabelOrLiteral(tok.children[1], relativeInstrCount)
 			if err != nil {
 				return 0, 0, err
 			}
@@ -402,7 +402,7 @@ func (p *Program) parseComplexValue(tok *Token, relativeInstrCount int) (int, in
 	case literal:
 		fallthrough
 	case register:
-		val, err := parseLabelOrLiteral(tok, relativeInstrCount)
+		val, err := p.parseLabelOrLiteral(tok, relativeInstrCount)
 		if err != nil {
 			return 0, 0, err
 		}
@@ -425,14 +425,14 @@ func handleModifier(mod string, val int, relativeInstrCount int) (int, error) {
 	return 0, errors.New("modifier not found")
 }
 
-func parseLabelOrLiteral(tok *Token, instructionRelativePos int) (int, error) {
+func (p *Program) parseLabelOrLiteral(tok *Token, instructionRelativePos int) (int, error) {
 	switch tok.tokenType {
 	case varLabel:
 		fallthrough
 	case varValue:
 		fallthrough
 	case constantValue:
-		imm, ok := labelPositions[tok.value]
+		imm, ok := p.compilationVariables.labelPositions[tok.value]
 		if !ok {
 			return 0, errors.New(tok.value + " not found")
 		}

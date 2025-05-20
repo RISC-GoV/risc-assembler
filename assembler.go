@@ -10,6 +10,10 @@ import (
 )
 
 func (a *Assembler) Assemble(filename string, outputFolder string) error {
+	a.compilation = Compilation{}
+
+	a.compilation.labelPositions = map[string]int{}
+	a.compilation.stringCount = 8
 	if a.Token == nil {
 		a.Token = NewToken(global, "", nil)
 	}
@@ -61,17 +65,17 @@ func (a *Assembler) Assemble(filename string, outputFolder string) error {
 	}
 	fmt.Println("blocks sizes")
 	fmt.Print("instructions (4bytes/instr): ")
-	fmt.Println(instructionCount)
+	fmt.Println(a.compilation.instructionCount)
 	fmt.Print("instructions count: ")
-	fmt.Println(instructionCount / 32)
+	fmt.Println(a.compilation.instructionCount / 32)
 	fmt.Print("variables: ")
-	fmt.Println(variableCount)
+	fmt.Println(a.compilation.variableCount)
 	fmt.Print("constants: ")
-	fmt.Println(constantCount)
+	fmt.Println(a.compilation.constantCount)
 	fmt.Print("strings: ")
-	fmt.Println(stringCount)
+	fmt.Println(a.compilation.stringCount)
 
-	prog, err := compile(a.Token)
+	prog, err := a.compilation.compile(a.Token)
 	if err != nil {
 		return err
 	}
@@ -144,10 +148,10 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 					var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[2:], " "))
 					varS, isN := getVarSize(lineParts[1])
 					if isN {
-						constantCount += varS
+						a.compilation.constantCount += varS
 					} else {
 						finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
-						stringCount += len(finalLinePart2)*8 - 8
+						a.compilation.stringCount += len(finalLinePart2)*8 - 8
 					}
 					tk.children = []*Token{NewToken(varSize, cleanupStr(lineParts[1]), tk), NewToken(varValue, finalLinePart2, tk)}
 				}
@@ -164,13 +168,13 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				varS, isN := getVarSize(lineParts[0])
 				if isN {
 					if parent.tokenType == constant {
-						constantCount += varS
+						a.compilation.constantCount += varS
 					} else {
-						variableCount += varS
+						a.compilation.variableCount += varS
 					}
 				} else {
 					finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
-					stringCount += len(finalLinePart2)*8 - 8
+					a.compilation.stringCount += len(finalLinePart2)*8 - 8
 				}
 				if parent.tokenType == section {
 					parent = parent.children[len(parent.children)-1]
@@ -220,10 +224,10 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 				var finalLinePart2 string = strings.TrimSpace(strings.Join(lineParts[2:], " "))
 				varS, isN := getVarSize(lineParts[1])
 				if isN {
-					variableCount += varS
+					a.compilation.variableCount += varS
 				} else {
 					finalLinePart2 = finalLinePart2[1 : len(finalLinePart2)-1]
-					stringCount += len(finalLinePart2)*8 - 8
+					a.compilation.stringCount += len(finalLinePart2)*8 - 8
 				}
 				tk := NewToken(varLabel, ln, parent)
 				//add var size and value
@@ -244,7 +248,7 @@ func (a *Assembler) Parse(lineParts []string, parent *Token) (*Token, error) {
 	lineParts = lineParts[1:]
 	var err error
 	//increase instruction count to keep track of machineCode Size
-	instructionCount += 4
+	a.compilation.instructionCount += 4
 
 	if ln == "ebreak" || ln == "ecall" {
 		return parent, nil

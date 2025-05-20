@@ -100,8 +100,9 @@ empty_string: .asciz ""
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset global variables for each test
-			labelPositions = make(map[string]int)
-			instructionCount = 0
+			c := Compilation{}
+			c.labelPositions = map[string]int{}
+			c.stringCount = 8
 
 			// Create temporary assembly file
 			tempFile, err := createTempAssemblyFile(tt.assemblySource)
@@ -158,11 +159,13 @@ empty_string: .asciz ""
 			p := &Program{
 				strings: []byte{0}, // Initial empty strings section
 			}
-
+			p.compilationVariables = &Compilation{}
+			p.compilationVariables.labelPositions = map[string]int{}
+			p.compilationVariables.stringCount = 8
 			p.handleString(stringToken)
 
 			// Check if the label was added correctly
-			_, exists := labelPositions[tt.expectedLabel]
+			_, exists := p.compilationVariables.labelPositions[tt.expectedLabel]
 			if !exists {
 				t.Errorf("Label %s was not added to labelPositions", tt.expectedLabel)
 			}
@@ -250,14 +253,6 @@ global_label:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset global variables for each test
-			labelPositions = make(map[string]int)
-			instructionCountCompilation = 0
-			variableCount = 0
-			constantCount = 0
-			stringCount = 8
-			callbackInstructions = [][2]interface{}{}
-			compilationEntryPoint = ""
 
 			// Create temporary assembly file
 			tempFile, err := createTempAssemblyFile(tt.assemblySource)
@@ -306,7 +301,7 @@ global_label:
 
 			// Check labels
 			for _, label := range tt.expectedLabels {
-				_, exists := labelPositions[label]
+				_, exists := p.compilationVariables.labelPositions[label]
 				if !exists {
 					t.Errorf("Label %s was not added to labelPositions", label)
 				}
@@ -353,16 +348,6 @@ start:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset global variables for each test
-			labelPositions = make(map[string]int)
-			instructionCountCompilation = 0
-			instructionCount = 0
-			variableCount = 0
-			constantCount = 0
-			stringCount = 8
-			callbackInstructions = [][2]interface{}{}
-			compilationEntryPoint = ""
-
 			// Create temporary assembly file
 			tempFile, err := createTempAssemblyFile(tt.assemblySource)
 			if err != nil {
@@ -376,9 +361,11 @@ start:
 			if err != nil {
 				t.Fatalf("Assemble error: %v", err)
 			}
-
+			c := Compilation{}
+			c.labelPositions = map[string]int{}
+			c.stringCount = 8
 			// Compile the program
-			prog, err := compile(asm.Token)
+			prog, err := c.compile(asm.Token)
 			if err != nil {
 				t.Fatalf("Compile error: %v", err)
 			}
@@ -393,7 +380,7 @@ start:
 			if len(prog.constants) != tt.expectedConstsLen {
 				t.Errorf("compile() constants length = %d, want %d", len(prog.constants), tt.expectedConstsLen)
 			}
-
+			compilationEntryPoint := prog.compilationVariables.compilationEntryPoint
 			// Check if the entrypoint matches
 			if compilationEntryPoint != "" && compilationEntryPoint != tt.expectedEntrypoint {
 				t.Errorf("compile() entrypoint = %s, want %s", compilationEntryPoint, tt.expectedEntrypoint)
