@@ -60,8 +60,6 @@ func (a *Assembler) Assemble(filename string, outputFolder string) error {
 	ferr := os.WriteFile(outputPath, []byte(str), 0644)
 	if ferr != nil {
 		println(ferr.Error())
-	} else {
-		println("parsing saved to ./testfile/output.parser")
 	}
 	fmt.Println("blocks sizes")
 	fmt.Print("instructions (4bytes/instr): ")
