@@ -14,31 +14,35 @@ func Preprocess(file *os.File) []string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		lineIndx := strings.Index(line, "#")
-		if lineIndx != -1 {
-			line = line[:lineIndx]
-		}
-		line = strings.ReplaceAll(line, "\t", " ")
+		result = append(result, PreprocessLine(line)...)
+	}
+	return result
+}
 
-		lineParts := strings.Split(line, " ")
-		lineParts = removeEmptyStrings(lineParts)
-
-		if len(lineParts) == 0 {
-			continue
-		}
-
-		if res, ok := PseudoToInstruction[lineParts[0]]; ok {
-			var resArray []string = res(lineParts)
-
-			for _, res := range resArray {
-				result = append(result, res)
-			}
-		} else {
-			result = append(result, line)
-		}
-
+func PreprocessLine(line string) []string {
+	var result []string = []string{}
+	//prune comments
+	lineIndx := strings.Index(line, "#")
+	if lineIndx != -1 {
+		line = line[:lineIndx]
 	}
 
+	//prune whitespaces
+	line = strings.ReplaceAll(line, "\t", " ")
+	lineParts := strings.Split(line, " ")
+
+	//prune empty lines
+	lineParts = removeEmptyStrings(lineParts)
+	if len(lineParts) == 0 {
+		return result
+	}
+
+	if res, ok := PseudoToInstruction[lineParts[0]]; ok {
+		var resArray []string = res(lineParts)
+		result = append(result, resArray...)
+	} else {
+		result = append(result, line)
+	}
 	return result
 }
 

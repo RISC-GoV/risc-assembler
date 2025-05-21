@@ -9,6 +9,35 @@ import (
 	"strings"
 )
 
+func (a *Assembler) AssembleLine(line string) ([]byte, error) {
+	if a.Token == nil {
+		a.Token = NewToken(global, "", nil)
+	}
+	lines := PreprocessLine(line)
+	actualParent := a.Token
+	var err error
+
+	for _, line := range lines {
+		lineParts := strings.Split(line, " ")
+		lineParts = removeEmptyStrings(lineParts)
+
+		a.lineNumber++
+		if len(lineParts) == 0 {
+			continue
+		}
+		actualParent, err = a.Parse(lineParts, actualParent)
+		if err != nil {
+			return nil, errors.New("LINE " + strconv.Itoa(a.lineNumber) + " " + err.Error())
+		}
+	}
+
+	prog, err := a.compilation.compile(a.Token)
+	if err != nil {
+		return nil, err
+	}
+	return prog.machinecode, nil
+}
+
 func (a *Assembler) Assemble(filename string, outputFolder string) error {
 	a.compilation = Compilation{}
 
