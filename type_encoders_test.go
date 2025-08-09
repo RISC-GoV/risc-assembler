@@ -1051,7 +1051,23 @@ func TestProgram_InstructionToBinary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) { //reset labelPositions
-			p := &Program{}
+			p := &Program{
+				machinecode: []byte{0},
+				variables:   []byte{0},
+				constants:   []byte{0},
+				strings:     []byte{0},
+				entrypoint:  [4]byte{0},
+				compilationVariables: &Compilation{
+					labelPositions:              make(map[string]int),
+					compilationEntryPoint:       "",
+					instructionCount:            0,
+					instructionCountCompilation: 0,
+					variableCount:               0,
+					constantCount:               0,
+					stringCount:                 0,
+					callbackInstructions:        nil,
+				},
+			}
 			got, err := p.InstructionToBinary(tt.token, tt.relativeInstrCount)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("InstructionToBinary() error = %v, wantErr %v", err, tt.wantErr)

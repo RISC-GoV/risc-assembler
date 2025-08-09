@@ -285,11 +285,17 @@ global_label:
 
 			// Create a new program and perform recursive compilation
 			p := &Program{
+				compilationVariables: &Compilation{
+					labelPositions: make(map[string]int),
+				},
 				strings: []byte{0}, // Initial empty strings section
 			}
 
 			// Perform recursive compilation on the root token
-			p.recursiveCompilation(asm.Token)
+			err = p.recursiveCompilation(asm.Token)
+			if err != nil {
+				t.Errorf("%s", err)
+			}
 
 			// Check lengths
 			if len(p.variables) != tt.expectedVarsLen {
